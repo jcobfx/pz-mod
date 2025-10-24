@@ -1,1 +1,1 @@
-# pz-mod
+# Projekt Zespołowy Mod — PZMod

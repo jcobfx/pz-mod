@@ -1,0 +1,13 @@
+{
+  "itemGroup.pz_mod": "Example Mod Tab",
+  "block.pz_mod.example_block": "Example Block",
+  "item.pz_mod.example_item": "Example Item",
+
+  "pz_mod.configuration.title": "PZMod Configs",
+  "pz_mod.configuration.section.pz_mod.common.toml": "PZMod Configs",
+  "pz_mod.configuration.section.pz_mod.common.toml.title": "PZMod Configs",
+  "pz_mod.configuration.items": "Item List",
+  "pz_mod.configuration.logDirtBlock": "Log Dirt Block",
+  "pz_mod.configuration.magicNumberIntroduction": "Magic Number Text",
+  "pz_mod.configuration.magicNumber": "Magic Number"
+}
