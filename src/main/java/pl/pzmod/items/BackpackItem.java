@@ -19,32 +19,28 @@ public class BackpackItem extends PZItem {
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level,
                                                            @NotNull Player player,
                                                            @NotNull InteractionHand usedHand) {
-        ItemStack backpackItem = player.getItemInHand(usedHand);
+        ItemStack backpack = player.getItemInHand(usedHand);
         if (usedHand == InteractionHand.MAIN_HAND) {
-            IItemHandler inventory = getInventory(backpackItem);
+            IItemHandler inventory = getInventory(backpack);
             if (inventory != null) {
                 ItemStack offhandItem = player.getOffhandItem();
                 ItemStack packedItem = inventory.getStackInSlot(0);
                 int toExtract = offhandItem.getMaxStackSize() - offhandItem.getCount();
-                if (offhandItem.isEmpty() || (!packedItem.isEmpty() && toExtract > 0
-                        && ItemStack.isSameItemSameComponents(offhandItem, packedItem))) {
-                    if (offhandItem.isEmpty()) {
+                if (offhandItem.isEmpty()) {
                         ItemStack extractedItem = inventory.extractItem(0, packedItem.getMaxStackSize(), false);
                         player.setItemInHand(InteractionHand.OFF_HAND, extractedItem);
-                    } else {
-                        ItemStack extractedItem = inventory.extractItem(0, toExtract, false);
-                        offhandItem.setCount(offhandItem.getCount() + extractedItem.getCount());
-                        player.setItemInHand(InteractionHand.OFF_HAND, offhandItem);
-                    }
-                    return InteractionResultHolder.success(backpackItem);
-                } else if (!offhandItem.isEmpty() && !(offhandItem.getItem() instanceof BackpackItem)) {
+                } else if (ItemStack.isSameItemSameComponents(offhandItem, packedItem) && toExtract > 0) {
+                    toExtract = inventory.extractItem(0, toExtract, false).getCount();
+                    player.setItemInHand(InteractionHand.OFF_HAND,
+                            offhandItem.copyWithCount(offhandItem.getCount() + toExtract));
+                } else {
                     offhandItem = inventory.insertItem(0, offhandItem, false);
                     player.setItemInHand(InteractionHand.OFF_HAND, offhandItem);
-                    return InteractionResultHolder.success(backpackItem);
                 }
+                return InteractionResultHolder.success(backpack);
             }
         }
-        return InteractionResultHolder.pass(backpackItem);
+        return InteractionResultHolder.pass(backpack);
     }
 
     @Override
@@ -59,5 +55,10 @@ public class BackpackItem extends PZItem {
 
     private @Nullable IItemHandler getInventory(@NotNull ItemStack stack) {
         return stack.getCapability(Capabilities.ItemHandler.ITEM);
+    }
+
+    @Override
+    public boolean canFitInsideContainerItems(@NotNull ItemStack stack) {
+        return false;
     }
 }
