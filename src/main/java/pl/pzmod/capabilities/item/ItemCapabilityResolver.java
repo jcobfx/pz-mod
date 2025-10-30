@@ -47,7 +47,7 @@ public class ItemCapabilityResolver<CONTEXT> extends CapabilityResolver<CONTEXT,
         } else {
             AttachedItems contents = this.getContents();
             ItemStack existing = this.getStackFromContents(contents, slot);
-            int insertLimit = Math.min(this.getSlotLimit(slot), toInsert.getMaxStackSize());
+            int insertLimit = this.getSlotLimit(slot);
             if (!existing.isEmpty()) {
                 if (!ItemStack.isSameItemSameComponents(toInsert, existing)) {
                     return toInsert;
@@ -77,7 +77,7 @@ public class ItemCapabilityResolver<CONTEXT> extends CapabilityResolver<CONTEXT,
             if (existing.isEmpty()) {
                 return ItemStack.EMPTY;
             } else {
-                int toExtract = Math.min(amount, existing.getCount());
+                int toExtract = Math.min(amount, Math.min(existing.getCount(), existing.getMaxStackSize()));
                 if (!simulate) {
                     this.updateContents(contents, existing.copyWithCount(existing.getCount() - toExtract), slot);
                 }
