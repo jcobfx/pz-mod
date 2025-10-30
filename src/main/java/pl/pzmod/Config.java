@@ -28,8 +28,8 @@ public class Config {
             .define("magicNumberIntroduction", "The magic number is... ");
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("A list of containers to log on common setup.")
-            .defineListAllowEmpty("containers", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
+            .comment("A list of fluids to log on common setup.")
+            .defineListAllowEmpty("fluids", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 

@@ -13,19 +13,19 @@ import pl.pzmod.data.SerializerHelper;
 import java.util.Collections;
 import java.util.List;
 
-public record AttachedFluids(List<FluidStack> containers) {
+public record AttachedFluids(List<FluidStack> fluids) {
     public static final Codec<AttachedFluids> CODEC;
     public static final StreamCodec<RegistryFriendlyByteBuf, AttachedFluids> STREAM_CODEC;
 
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 SerializerHelper.LENIENT_OPTIONAL_FLUID_STACK_CODEC.listOf().fieldOf(SerializationConstants.FLUID_CONTAINERS)
-                        .forGetter(AttachedFluids::containers)
+                        .forGetter(AttachedFluids::fluids)
         ).apply(instance, AttachedFluids::new));
 
         STREAM_CODEC = FluidStack.OPTIONAL_STREAM_CODEC
                 .<List<FluidStack>>apply(ByteBufCodecs.collection(NonNullList::createWithCapacity))
-                .map(AttachedFluids::new, AttachedFluids::containers);
+                .map(AttachedFluids::new, AttachedFluids::fluids);
     }
 
     public static AttachedFluids create(int size) {
@@ -33,6 +33,6 @@ public record AttachedFluids(List<FluidStack> containers) {
     }
 
     public AttachedFluids {
-        containers = Collections.unmodifiableList(containers);
+        fluids = Collections.unmodifiableList(fluids);
     }
 }
