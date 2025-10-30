@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public record AttachedItems(List<ItemStack> items) {
+    public static final AttachedItems EMPTY = new AttachedItems(NonNullList.create());
     public static final Codec<AttachedItems> CODEC;
     public static final StreamCodec<RegistryFriendlyByteBuf, AttachedItems> STREAM_CODEC;
 
@@ -32,5 +33,27 @@ public record AttachedItems(List<ItemStack> items) {
 
     public AttachedItems {
         items = Collections.unmodifiableList(items);
+    }
+
+    public void copyInto(NonNullList<ItemStack> list) {
+        for (int i = 0; i < list.size(); ++i) {
+            ItemStack itemstack = i < this.items.size() ? this.items.get(i) : ItemStack.EMPTY;
+            list.set(i, itemstack.copy());
+        }
+    }
+
+    public int getSlots() {
+        return items.size();
+    }
+
+    public ItemStack getStackInSlot(int slot) {
+        this.validateSlotIndex(slot);
+        return this.items.get(slot).copy();
+    }
+
+    private void validateSlotIndex(int slot) {
+        if (slot < 0 || slot >= this.getSlots()) {
+            throw new UnsupportedOperationException("Slot " + slot + " not in valid range - [0," + this.getSlots() + ")");
+        }
     }
 }

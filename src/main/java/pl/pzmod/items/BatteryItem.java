@@ -1,10 +1,11 @@
 package pl.pzmod.items;
 
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
@@ -12,22 +13,27 @@ import org.jetbrains.annotations.Nullable;
 
 public class BatteryItem extends PZItem {
     public BatteryItem(Properties properties) {
-        super(properties);
+        super(properties.stacksTo(1));
     }
 
     @Override
-    @NotNull
-    public InteractionResult useOn(@NotNull UseOnContext context) {
-        IEnergyStorage energyStorage = getEnergyStorage(context.getItemInHand());
-        Player player = context.getPlayer();
-        if (energyStorage != null && player != null) {
-            if (player.isShiftKeyDown() && energyStorage.canExtract()) {
-                energyStorage.extractEnergy(100, false);
-            } else if (energyStorage.canReceive()) {
-                energyStorage.receiveEnergy(100, false);
+    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level,
+                                                           @NotNull Player player,
+                                                           @NotNull InteractionHand usedHand) {
+        ItemStack itemInHand = player.getItemInHand(usedHand);
+        if (usedHand == InteractionHand.MAIN_HAND) {
+            IEnergyStorage energyStorage = getEnergyStorage(itemInHand);
+            if (energyStorage != null) {
+                if (player.isShiftKeyDown() && energyStorage.canExtract()) {
+                    energyStorage.extractEnergy(100, false);
+                    return InteractionResultHolder.success(itemInHand);
+                } else if (energyStorage.canReceive()) {
+                    energyStorage.receiveEnergy(100, false);
+                    return InteractionResultHolder.success(itemInHand);
+                }
             }
         }
-        return InteractionResult.SUCCESS_NO_ITEM_USED;
+        return InteractionResultHolder.pass(itemInHand);
     }
 
     @Override
@@ -57,15 +63,15 @@ public class BatteryItem extends PZItem {
         return 100;
     }
 
-    private @Nullable IEnergyStorage getEnergyStorage(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.EnergyStorage.ITEM);
-    }
-
     private int getEnergy(@NotNull ItemStack stack) {
         IEnergyStorage energyStorage = getEnergyStorage(stack);
         if (energyStorage != null) {
             return energyStorage.getEnergyStored();
         }
         return 0;
+    }
+
+    private @Nullable IEnergyStorage getEnergyStorage(@NotNull ItemStack stack) {
+        return stack.getCapability(Capabilities.EnergyStorage.ITEM);
     }
 }

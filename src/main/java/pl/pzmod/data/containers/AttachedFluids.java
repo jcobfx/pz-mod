@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 public record AttachedFluids(List<FluidStack> fluids) {
+    public static final AttachedFluids EMPTY = new AttachedFluids(NonNullList.create());
     public static final Codec<AttachedFluids> CODEC;
     public static final StreamCodec<RegistryFriendlyByteBuf, AttachedFluids> STREAM_CODEC;
 

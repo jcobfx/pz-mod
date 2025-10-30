@@ -9,6 +9,7 @@ import pl.pzmod.data.SerializationConstants;
 import pl.pzmod.data.SerializerHelper;
 
 public record AttachedEnergy(Integer energy) {
+    public static final AttachedEnergy EMPTY = new AttachedEnergy(0);
     public static final Codec<AttachedEnergy> CODEC;
     public static final StreamCodec<ByteBuf, AttachedEnergy> STREAM_CODEC;
 
@@ -19,9 +20,5 @@ public record AttachedEnergy(Integer energy) {
         ).apply(instance, AttachedEnergy::new));
 
         STREAM_CODEC = ByteBufCodecs.VAR_INT.map(AttachedEnergy::new, AttachedEnergy::energy);
-    }
-
-    public static AttachedEnergy empty() {
-        return new AttachedEnergy(0);
     }
 }
