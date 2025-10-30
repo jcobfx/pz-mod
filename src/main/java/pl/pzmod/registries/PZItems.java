@@ -8,14 +8,14 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
-import pl.pzmod.containers.energy.ItemEnergyHandler;
-import pl.pzmod.items.Battery;
+import pl.pzmod.capabilities.energy.ItemEnergyCapabilityResolver;
+import pl.pzmod.items.BatteryItem;
 
 @EventBusSubscriber(modid = PZMod.MODID)
 public class PZItems {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PZMod.MODID);
 
-    public static final DeferredItem<Battery> BATTERY = ITEMS.registerItem("battery", Battery::new);
+    public static final DeferredItem<BatteryItem> BATTERY = ITEMS.registerItem("battery", BatteryItem::new);
 
     public static void register(IEventBus bus) {
         ITEMS.register(bus);
@@ -25,7 +25,7 @@ public class PZItems {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(
                 Capabilities.EnergyStorage.ITEM,
-                (stack, access) -> new ItemEnergyHandler(stack, 10000, 100),
+                ItemEnergyCapabilityResolver::new,
                 BATTERY
         );
     }

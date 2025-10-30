@@ -1,30 +1,33 @@
-package pl.pzmod.containers.energy;
+package pl.pzmod.capabilities.energy;
 
-import net.minecraft.core.Direction;
 import net.neoforged.neoforge.common.MutableDataComponentHolder;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import pl.pzmod.data.containers.AttachedEnergy;
 import pl.pzmod.registries.PZDataComponents;
 
 import java.util.function.Predicate;
 
-public class BasicEnergyHandler<HOLDER extends MutableDataComponentHolder> implements ISidedEnergyStorage {
+public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT> implements IEnergyStorage {
     private final HOLDER holder;
     private final int capacity;
     private final int maxTransfer;
-    private final Predicate<@Nullable Direction> canExtract;
-    private final Predicate<@Nullable Direction> canInsert;
 
-    public BasicEnergyHandler(HOLDER holder,
-                              int capacity,
-                              int maxTransfer,
-                              Predicate<@Nullable Direction> canExtract,
-                              Predicate<@Nullable Direction> canInsert) {
+    private final CONTEXT context;
+    private final Predicate<CONTEXT> canExtract;
+    private final Predicate<CONTEXT> canReceive;
+
+    public EnergyCapabilityResolver(HOLDER holder,
+                                    int capacity,
+                                    int maxTransfer,
+                                    CONTEXT context,
+                                    Predicate<CONTEXT> canExtract,
+                                    Predicate<CONTEXT> canReceive) {
         this.holder = holder;
         this.capacity = capacity;
         this.maxTransfer = maxTransfer;
+        this.context = context;
         this.canExtract = canExtract;
-        this.canInsert = canInsert;
+        this.canReceive = canReceive;
     }
 
     private AttachedEnergy getAttached() {
@@ -40,7 +43,7 @@ public class BasicEnergyHandler<HOLDER extends MutableDataComponentHolder> imple
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate, @Nullable Direction side) {
+    public int receiveEnergy(int maxReceive, boolean simulate) {
         int storedEnergy = getAttached().energy();
         int energyReceived = Math.min(capacity - storedEnergy, Math.min(maxTransfer, maxReceive));
         if (!simulate && energyReceived > 0) {
@@ -50,7 +53,7 @@ public class BasicEnergyHandler<HOLDER extends MutableDataComponentHolder> imple
     }
 
     @Override
-    public int extractEnergy(int maxExtract, boolean simulate, @Nullable Direction side) {
+    public int extractEnergy(int maxExtract, boolean simulate) {
         int storedEnergy = getAttached().energy();
         int energyExtracted = Math.min(storedEnergy, Math.min(maxTransfer, maxExtract));
         if (!simulate && energyExtracted > 0) {
@@ -60,13 +63,13 @@ public class BasicEnergyHandler<HOLDER extends MutableDataComponentHolder> imple
     }
 
     @Override
-    public boolean canExtract(@Nullable Direction side) {
-        return maxTransfer > 0 && canExtract.test(side);
+    public boolean canExtract() {
+        return maxTransfer > 0 && canExtract.test(context);
     }
 
     @Override
-    public boolean canReceive(@Nullable Direction side) {
-        return maxTransfer > 0 && canInsert.test(side);
+    public boolean canReceive() {
+        return maxTransfer > 0 && canReceive.test(context);
     }
 
     @Override
