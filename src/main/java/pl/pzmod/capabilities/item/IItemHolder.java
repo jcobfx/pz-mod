@@ -1,7 +1,7 @@
 package pl.pzmod.capabilities.item;
 
 public interface IItemHolder {
-    int getSlotCount();
+    int getSlots();
 
-    int getSlotLimit();
+    int getLimit();
 }

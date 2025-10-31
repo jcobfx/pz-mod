@@ -6,6 +6,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import pl.pzmod.data.SerializationConstants;
 import pl.pzmod.data.SerializerHelper;
 
@@ -36,10 +37,10 @@ public record AttachedItems(List<ItemStack> items) {
         items = Collections.unmodifiableList(items);
     }
 
-    public void copyInto(NonNullList<ItemStack> list) {
+    public void copyInto(@NotNull NonNullList<ItemStack> list) {
         for (int i = 0; i < list.size(); ++i) {
-            ItemStack itemstack = i < this.items.size() ? this.items.get(i) : ItemStack.EMPTY;
-            list.set(i, itemstack.copy());
+            ItemStack stack = i < this.items.size() ? this.items.get(i) : ItemStack.EMPTY;
+            list.set(i, stack.copy());
         }
     }
 
@@ -47,7 +48,7 @@ public record AttachedItems(List<ItemStack> items) {
         return items.size();
     }
 
-    public ItemStack getStackInSlot(int slot) {
+    public @NotNull ItemStack getStackInSlot(int slot) {
         this.validateSlotIndex(slot);
         return this.items.get(slot).copy();
     }

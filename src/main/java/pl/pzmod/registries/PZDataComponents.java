@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
 import pl.pzmod.data.containers.AttachedEnergy;
+import pl.pzmod.data.containers.AttachedFluids;
 import pl.pzmod.data.containers.AttachedItems;
 
 public class PZDataComponents {
@@ -23,10 +24,10 @@ public class PZDataComponents {
                     .persistent(AttachedEnergy.CODEC)
                     .networkSynchronized(AttachedEnergy.STREAM_CODEC));
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedEnergy>> ATTACHED_FLUID =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedFluids>> ATTACHED_FLUIDS =
             DATA_COMPONENTS.registerComponentType("attached_fluid", builder -> builder
-                    .persistent(AttachedEnergy.CODEC)
-                    .networkSynchronized(AttachedEnergy.STREAM_CODEC));
+                    .persistent(AttachedFluids.CODEC)
+                    .networkSynchronized(AttachedFluids.STREAM_CODEC));
 
     public static void register(IEventBus bus) {
         DATA_COMPONENTS.register(bus);

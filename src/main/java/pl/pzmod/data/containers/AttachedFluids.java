@@ -6,7 +6,9 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.NotNull;
 import pl.pzmod.data.SerializationConstants;
 import pl.pzmod.data.SerializerHelper;
 
@@ -35,5 +37,20 @@ public record AttachedFluids(List<FluidStack> fluids) {
 
     public AttachedFluids {
         fluids = Collections.unmodifiableList(fluids);
+    }
+
+    public void copyInto(@NotNull NonNullList<FluidStack> list) {
+        for (int i = 0; i < list.size(); ++i) {
+            FluidStack stack = i < this.fluids.size() ? this.fluids.get(i) : FluidStack.EMPTY;
+            list.set(i, stack.copy());
+        }
+    }
+
+    public int getTanks() {
+        return fluids.size();
+    }
+
+    public @NotNull FluidStack getFluidInTank(int tank) {
+        return fluids.get(tank);
     }
 }

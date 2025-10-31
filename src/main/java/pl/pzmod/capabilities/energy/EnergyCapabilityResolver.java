@@ -9,16 +9,17 @@ import pl.pzmod.registries.PZDataComponents;
 
 import java.util.function.Predicate;
 
-public class EnergyCapabilityResolver<CONTEXT> extends CapabilityResolver<CONTEXT, AttachedEnergy> implements IEnergyStorage {
+public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT>
+        extends CapabilityResolver<HOLDER, CONTEXT, AttachedEnergy> implements IEnergyStorage {
     private final int capacity;
     private final int maxTransfer;
 
-    public EnergyCapabilityResolver(MutableDataComponentHolder parent,
+    public EnergyCapabilityResolver(HOLDER parent,
                                     CONTEXT context,
-                                    int capacity,
-                                    int maxTransfer,
                                     Predicate<CONTEXT> canReceive,
-                                    Predicate<CONTEXT> canExtract) {
+                                    Predicate<CONTEXT> canExtract,
+                                    int capacity,
+                                    int maxTransfer) {
         super(parent, PZDataComponents.ATTACHED_ENERGY, context, canReceive, canExtract);
         this.capacity = capacity;
         this.maxTransfer = maxTransfer;
@@ -55,7 +56,7 @@ public class EnergyCapabilityResolver<CONTEXT> extends CapabilityResolver<CONTEX
     }
 
     protected void setEnergy(int energy) {
-        int realEnergy = Mth.clamp(energy, 0, this.capacity);
+        int realEnergy = Mth.clamp(energy, 0, capacity);
         setAttached(new AttachedEnergy(realEnergy));
     }
 
@@ -72,7 +73,7 @@ public class EnergyCapabilityResolver<CONTEXT> extends CapabilityResolver<CONTEX
     @Override
     public int getEnergyStored() {
         int rawEnergy = getAttached(AttachedEnergy.EMPTY).energy();
-        return Mth.clamp(rawEnergy, 0, this.capacity);
+        return Mth.clamp(rawEnergy, 0, capacity);
     }
 
     @Override

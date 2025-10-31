@@ -1,10 +1,15 @@
 package pl.pzmod.items;
 
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.fluids.FluidStack;
+import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.energy.IEnergyHolder;
+import pl.pzmod.capabilities.fluid.IFluidHolder;
 import pl.pzmod.capabilities.item.IItemHolder;
 
-public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder {
+import java.util.function.BiPredicate;
+
+public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder, IFluidHolder {
     public PZItem(Properties properties) {
         super(properties);
     }
@@ -20,12 +25,27 @@ public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder 
     }
 
     @Override
-    public int getSlotCount() {
+    public int getSlots() {
         return 0;
     }
 
     @Override
-    public int getSlotLimit() {
+    public int getLimit() {
         return 0;
+    }
+
+    @Override
+    public int getTanks() {
+        return 0;
+    }
+
+    @Override
+    public int getCapacity() {
+        return 0;
+    }
+
+    @Override
+    public BiPredicate<Integer, @NotNull FluidStack> getValidator() {
+        return null;
     }
 }

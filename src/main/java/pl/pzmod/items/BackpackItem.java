@@ -21,7 +21,7 @@ public class BackpackItem extends PZItem {
                                                            @NotNull InteractionHand usedHand) {
         ItemStack backpack = player.getItemInHand(usedHand);
         if (usedHand == InteractionHand.MAIN_HAND) {
-            IItemHandler inventory = getInventory(backpack);
+            IItemHandler inventory = getItemHandler(backpack);
             if (inventory != null) {
                 ItemStack offhandItem = player.getOffhandItem();
                 ItemStack packedItem = inventory.getStackInSlot(0);
@@ -44,16 +44,16 @@ public class BackpackItem extends PZItem {
     }
 
     @Override
-    public int getSlotCount() {
+    public int getSlots() {
         return 1;
     }
 
     @Override
-    public int getSlotLimit() {
+    public int getLimit() {
         return 2;
     }
 
-    private @Nullable IItemHandler getInventory(@NotNull ItemStack stack) {
+    private @Nullable IItemHandler getItemHandler(@NotNull ItemStack stack) {
         return stack.getCapability(Capabilities.ItemHandler.ITEM);
     }
 
