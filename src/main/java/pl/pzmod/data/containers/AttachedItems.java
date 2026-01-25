@@ -1,0 +1,61 @@
+package pl.pzmod.data.containers;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import pl.pzmod.data.SerializationConstants;
+import pl.pzmod.data.SerializerHelper;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
+public record AttachedItems(List<ItemStack> items) {
+    public static final AttachedItems EMPTY = new AttachedItems(NonNullList.create());
+    public static final Codec<AttachedItems> CODEC;
+    public static final StreamCodec<RegistryFriendlyByteBuf, AttachedItems> STREAM_CODEC;
+
+    static {
+        CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                SerializerHelper.LENIENT_OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.listOf()
+                        .fieldOf(SerializationConstants.ITEM_CONTAINERS).forGetter(AttachedItems::items)
+        ).apply(instance, AttachedItems::new));
+
+        STREAM_CODEC = ItemStack.OPTIONAL_LIST_STREAM_CODEC
+                .map(AttachedItems::new, AttachedItems::items);
+    }
+
+    public static AttachedItems create(int size) {
+        return new AttachedItems(NonNullList.withSize(size, ItemStack.EMPTY));
+    }
+
+    public AttachedItems {
+        items = Collections.unmodifiableList(items);
+    }
+
+    public void copyInto(@NotNull NonNullList<ItemStack> list) {
+        for (int i = 0; i < list.size(); ++i) {
+            ItemStack stack = i < this.items.size() ? this.items.get(i) : ItemStack.EMPTY;
+            list.set(i, stack.copy());
+        }
+    }
+
+    public int getSlots() {
+        return items.size();
+    }
+
+    public @NotNull ItemStack getStackInSlot(int slot) {
+        this.validateSlotIndex(slot);
+        return this.items.get(slot).copy();
+    }
+
+    private void validateSlotIndex(int slot) {
+        if (slot < 0 || slot >= this.getSlots()) {
+            throw new UnsupportedOperationException("Slot " + slot + " not in valid range - [0," + this.getSlots() + ")");
+        }
+    }
+}
