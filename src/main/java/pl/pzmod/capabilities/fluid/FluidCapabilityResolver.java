@@ -126,6 +126,7 @@ public class FluidCapabilityResolver<HOLDER extends MutableDataComponentHolder, 
     }
 
     protected void onContentsChanged(int slot, FluidStack oldStack, FluidStack newStack) {
+        // I don't know
     }
 
     protected AttachedFluids getContents() {

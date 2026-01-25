@@ -45,7 +45,7 @@ public class BatteryItem extends PZItem {
     public int getBarWidth(@NotNull ItemStack stack) {
         int maxEnergy = getEnergyCapacity();
         int energy = getEnergy(stack);
-        return Math.round((float) energy * 13.0F / (float) maxEnergy);
+        return Math.round(energy * 13.0F / maxEnergy);
     }
 
     @Override
