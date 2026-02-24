@@ -1,5 +1,8 @@
 package pl.pzmod;
 
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -14,8 +17,8 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import pl.pzmod.registries.PZDataComponents;
-import pl.pzmod.registries.PZItems;
+import pl.pzmod.registries.*;
+import pl.pzmod.screen.generator.GeneratorScreen;
 
 @Mod(PZMod.MODID)
 public class PZMod {
@@ -24,6 +27,7 @@ public class PZMod {
 
     public PZMod(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(PZBlockEntities::registerCapabilities);
 
         registerRegistries(modEventBus);
 
@@ -33,8 +37,11 @@ public class PZMod {
     }
 
     private void registerRegistries(IEventBus eventBus) {
+        PZCreativeTab.register(eventBus);
         PZDataComponents.register(eventBus);
-
+        PZBlockEntities.register(eventBus);
+        PZMenuTypes.register(eventBus);
+        PZBlocks.register(eventBus);
         PZItems.register(eventBus);
     }
 
@@ -53,5 +60,13 @@ public class PZMod {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("HELLO from server starting");
+    }
+
+    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
+    public static class ClientModEvents{
+        @SubscribeEvent
+        public static void registerClientScreens(RegisterMenuScreensEvent event){
+            event.register(PZMenuTypes.GENERATOR.get(), GeneratorScreen::new);
+        }
     }
 }

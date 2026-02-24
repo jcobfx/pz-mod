@@ -3,6 +3,10 @@
   "block.pz_mod.example_block": "Example Block",
   "item.pz_mod.example_item": "Example Item",
 
+
+  "item.pz_mod.battery": "Battery",
+  "block.pz_mod.generator": "Generator",
+
   "pz_mod.configuration.title": "PZMod Configs",
   "pz_mod.configuration.section.pz_mod.common.toml": "PZMod Configs",
   "pz_mod.configuration.section.pz_mod.common.toml.title": "PZMod Configs",

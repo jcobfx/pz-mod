@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "pz_mod:block/generator"
+    },
+    "facing=east": {
+      "model": "pz_mod:block/generator",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "pz_mod:block/generator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "pz_mod:block/generator",
+      "y": 270
+    }
+   }
+}
