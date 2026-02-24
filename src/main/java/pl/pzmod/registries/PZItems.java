@@ -17,7 +17,7 @@ import pl.pzmod.items.BigBucketItem;
 
 @EventBusSubscriber(modid = PZMod.MODID)
 public class PZItems {
-    private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PZMod.MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PZMod.MODID);
 
     public static final DeferredItem<BatteryItem> BATTERY = ITEMS.registerItem("battery", BatteryItem::new);
 
