@@ -24,7 +24,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -48,7 +47,7 @@ public class BigBucketItem extends PZItem {
 
         FluidStack fluidInTank = fluidTank.getFluidInTank(0);
         BlockHitResult blockhitresult = getPlayerPOVHitResult(level, player,
-                fluidInTank.getAmount() < getCapacity() ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
+                fluidInTank.getAmount() < this.getTankCapacity() ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
         if (blockhitresult.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(bigBucket);
         }
@@ -132,12 +131,12 @@ public class BigBucketItem extends PZItem {
 
     @Override
     public boolean isBarVisible(@NotNull ItemStack stack) {
-        return getFluidAmount(stack) < getCapacity();
+        return getFluidAmount(stack) < this.getTankCapacity();
     }
 
     @Override
     public int getBarWidth(@NotNull ItemStack stack) {
-        int maxCapacity = getCapacity();
+        int maxCapacity = this.getTankCapacity();
         int fluidAmount = getFluidAmount(stack);
         return Math.round(fluidAmount * 13.0F / maxCapacity);
     }
@@ -148,17 +147,17 @@ public class BigBucketItem extends PZItem {
     }
 
     @Override
-    public int getTanks() {
+    public int getTankCount() {
         return 1;
     }
 
     @Override
-    public int getCapacity() {
+    public int getTankCapacity() {
         return 2000;
     }
 
     @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getValidator() {
+    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
         return (tank, stack) -> true;
     }
 
@@ -168,10 +167,6 @@ public class BigBucketItem extends PZItem {
             return fluidTank.getFluidInTank(0).getAmount();
         }
         return 0;
-    }
-
-    private @Nullable IFluidHandler getFluidHandler(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.FluidHandler.ITEM);
     }
 
     private boolean canTankFitFluid(IFluidHandler tank, Fluid fluid) {

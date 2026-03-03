@@ -3,68 +3,94 @@ package pl.pzmod.blocks;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
-import pl.pzmod.capabilities.energy.IEnergyHolder;
 import pl.pzmod.items.BatteryItem;
 import pl.pzmod.registries.PZBlockEntities;
 
-public class GeneratorBlock extends BaseEntityBlock implements IEnergyHolder {
+public class GeneratorBlock extends PZBlock implements EntityBlock {
+    private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
 
-    public static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
-
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
-
-    public final int MAX_ENERGY = 100000;
-    public final int MAX_TRANSFER = 1000;
+    @SuppressWarnings("unchecked")
+    private static <E extends BlockEntity, A extends BlockEntity> @Nullable BlockEntityTicker<A> createTickerHelper(
+            BlockEntityType<A> serverType,
+            BlockEntityType<E> clientType,
+            BlockEntityTicker<? super E> ticker
+    ) {
+        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
+    }
 
     public GeneratorBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
     }
 
     @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+    public int getEnergyCapacity() {
+        return 100_000;
+    }
+
+    @Override
+    public int getEnergyMaxTransfer() {
+        return 1000;
+    }
+
+    @Override
+    public int getSlotCount() {
+        return 1;
+    }
+
+    @Override
+    public int getSlotLimit() {
+        return 100;
+    }
+
+    @Override
+    protected @NotNull MapCodec<GeneratorBlock> codec() {
         return CODEC;
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         return new GeneratorBlockEntity(blockPos, blockState);
     }
 
     @Override
-    protected RenderShape getRenderShape(BlockState state) {
+    protected @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
         return RenderShape.MODEL;
     }
 
     @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return blockEntityType == PZBlockEntities.GENERATOR_BE.get()
-                ? (lvl, pos, st, be) -> GeneratorBlockEntity.tick(lvl, pos, st, (GeneratorBlockEntity) be)
-                : null;
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level,
+                                                                            @NotNull BlockState state,
+                                                                            @NotNull BlockEntityType<T> type) {
+        return createTickerHelper(type, PZBlockEntities.GENERATOR.get(), GeneratorBlockEntity::tick);
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected @NotNull ItemInteractionResult useItemOn(ItemStack stack,
+                                                       @NotNull BlockState state,
+                                                       @NotNull Level level,
+                                                       @NotNull BlockPos pos,
+                                                       @NotNull Player player,
+                                                       @NotNull InteractionHand hand,
+                                                       @NotNull BlockHitResult hitResult) {
         if (stack.getItem() instanceof BatteryItem && player.isShiftKeyDown()) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -81,11 +107,18 @@ public class GeneratorBlock extends BaseEntityBlock implements IEnergyHolder {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
-            if (level.getBlockEntity(pos) instanceof GeneratorBlockEntity generatorBlockEntity) {
-                generatorBlockEntity.drops();
-                level.updateNeighbourForOutputSignal(pos, this);
+    public void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
+        if (!level.isClientSide && state.getBlock() != newState.getBlock()) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof GeneratorBlockEntity generatorEntity) {
+                var inventory = generatorEntity.getItemHandler(pos, state,null);
+                if (inventory != null) {
+                    NonNullList<ItemStack> stored = NonNullList.withSize(inventory.getSlots(), ItemStack.EMPTY);
+                    for (int i = 0; i < inventory.getSlots(); i++) {
+                        stored.set(i, inventory.getStackInSlot(i));
+                    }
+                    Containers.dropContents(level, pos, stored);
+                }
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
@@ -93,21 +126,11 @@ public class GeneratorBlock extends BaseEntityBlock implements IEnergyHolder {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
-    }
-
-    @Override
-    public int getEnergyCapacity() {
-        return MAX_ENERGY;
-    }
-
-    @Override
-    public int getEnergyMaxTransfer() {
-        return MAX_TRANSFER;
+        builder.add(HorizontalDirectionalBlock.FACING);
     }
 }

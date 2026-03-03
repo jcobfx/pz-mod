@@ -1,28 +1,26 @@
 package pl.pzmod.capabilities.energy;
 
 import net.minecraft.util.Mth;
-import net.neoforged.neoforge.common.MutableDataComponentHolder;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import pl.pzmod.capabilities.CapabilityResolver;
+import pl.pzmod.capabilities.proxy.Proxy;
 import pl.pzmod.data.containers.AttachedEnergy;
-import pl.pzmod.registries.PZDataComponents;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT>
-        extends CapabilityResolver<HOLDER, CONTEXT, AttachedEnergy> implements IEnergyStorage {
+public class EnergyCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IEnergyStorage {
     private final int capacity;
     private final int maxTransfer;
 
-    public EnergyCapabilityResolver(HOLDER parent,
-                                    CONTEXT context,
-                                    Predicate<CONTEXT> canReceive,
-                                    Predicate<CONTEXT> canExtract,
-                                    int capacity,
-                                    int maxTransfer) {
-        super(parent, PZDataComponents.ATTACHED_ENERGY, context, canReceive, canExtract);
-        this.capacity = capacity;
-        this.maxTransfer = maxTransfer;
+    public EnergyCapabilityResolver(Proxy<P> energyHolder,
+                                    Supplier<T> dataType,
+                                    C context,
+                                    Predicate<C> canReceive,
+                                    Predicate<C> canExtract) {
+        super(energyHolder, dataType, context, canReceive, canExtract);
+        this.capacity = energyHolder.getEnergyCapacity();
+        this.maxTransfer = energyHolder.getEnergyMaxTransfer();
     }
 
     @Override
@@ -33,7 +31,6 @@ public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder,
             if (!simulate && energyReceived > 0) {
                 setEnergy(energy + energyReceived);
             }
-
             return energyReceived;
         } else {
             return 0;
@@ -48,7 +45,6 @@ public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder,
             if (!simulate && energyExtracted > 0) {
                 setEnergy(energy - energyExtracted);
             }
-
             return energyExtracted;
         } else {
             return 0;
@@ -57,7 +53,7 @@ public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder,
 
     protected void setEnergy(int energy) {
         int realEnergy = Mth.clamp(energy, 0, capacity);
-        setAttached(new AttachedEnergy(realEnergy));
+        setData(new AttachedEnergy(realEnergy));
     }
 
     @Override
@@ -72,7 +68,7 @@ public class EnergyCapabilityResolver<HOLDER extends MutableDataComponentHolder,
 
     @Override
     public int getEnergyStored() {
-        int rawEnergy = getAttached(AttachedEnergy.EMPTY).energy();
+        int rawEnergy = getData(AttachedEnergy.EMPTY).energy();
         return Mth.clamp(rawEnergy, 0, capacity);
     }
 

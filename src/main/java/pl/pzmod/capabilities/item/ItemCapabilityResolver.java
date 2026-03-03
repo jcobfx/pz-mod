@@ -2,29 +2,27 @@ package pl.pzmod.capabilities.item;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.MutableDataComponentHolder;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.CapabilityResolver;
+import pl.pzmod.capabilities.proxy.Proxy;
 import pl.pzmod.data.containers.AttachedItems;
-import pl.pzmod.registries.PZDataComponents;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class ItemCapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT>
-        extends CapabilityResolver<HOLDER, CONTEXT, AttachedItems> implements IItemHandler {
+public class ItemCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IItemHandlerModifiable {
     private final int slotCount;
     private final int slotLimit;
 
-    protected ItemCapabilityResolver(HOLDER parent,
-                                     CONTEXT context,
-                                     Predicate<CONTEXT> canInsert,
-                                     Predicate<CONTEXT> canExtract,
-                                     int slots,
-                                     int limit) {
-        super(parent, PZDataComponents.ATTACHED_ITEMS, context, canInsert, canExtract);
-        this.slotCount = slots;
-        this.slotLimit = limit;
+    protected ItemCapabilityResolver(Proxy<P> dataHolder,
+                                     Supplier<T> dataType,
+                                     C context,
+                                     Predicate<C> canInsert,
+                                     Predicate<C> canExtract) {
+        super(dataHolder, dataType, context, canInsert, canExtract);
+        this.slotCount = dataHolder.getSlotCount();
+        this.slotLimit = dataHolder.getSlotLimit();
     }
 
     @Override
@@ -98,31 +96,48 @@ public class ItemCapabilityResolver<HOLDER extends MutableDataComponentHolder, C
         return stack.canFitInsideContainerItems();
     }
 
+    @Override
+    public void setStackInSlot(int i, @NotNull ItemStack itemStack) {
+        validateSlotIndex(i);
+        if (!canInsert() && !itemStack.isEmpty()) {
+            throw new IllegalArgumentException("Cannot insert into slot " + i + " - insertion is not allowed");
+        }
+        if (!isItemValid(i, itemStack)) {
+            throw new IllegalArgumentException("Cannot insert stack " + itemStack + " into slot " + i + " - stack is not valid for this slot");
+        }
+
+        AttachedItems contents = getContents();
+        ItemStack oldStack = getStackFromContents(contents, i);
+        updateContents(contents, itemStack, i);
+        onContentsChanged(i, oldStack, itemStack);
+    }
+
     protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
+        // Do nothing by default, can be overridden to react to changes in the item contents
     }
 
-    protected AttachedItems getContents() {
-        return getAttached(AttachedItems.EMPTY);
+    private AttachedItems getContents() {
+        return getData(AttachedItems.EMPTY);
     }
 
-    protected ItemStack getStackFromContents(@NotNull AttachedItems contents, int slot) {
+    private ItemStack getStackFromContents(@NotNull AttachedItems contents, int slot) {
         this.validateSlotIndex(slot);
         return contents.getSlots() <= slot ? ItemStack.EMPTY : contents.getStackInSlot(slot);
     }
 
-    protected void updateContents(@NotNull AttachedItems contents, ItemStack stack, int slot) {
+    private void updateContents(@NotNull AttachedItems contents, ItemStack stack, int slot) {
         validateSlotIndex(slot);
         NonNullList<ItemStack> list = NonNullList.withSize(Math.max(contents.getSlots(), getSlots()), ItemStack.EMPTY);
         contents.copyInto(list);
         ItemStack oldStack = list.get(slot);
         list.set(slot, stack);
-        setAttached(new AttachedItems(list));
+        setData(new AttachedItems(list));
         onContentsChanged(slot, oldStack, stack);
     }
 
-    protected final void validateSlotIndex(int slot) {
+    private void validateSlotIndex(int slot) {
         if (slot < 0 || slot >= getSlots()) {
-            throw new RuntimeException("Slot " + slot + " not in valid range - [0," + getSlots() + ")");
+            throw new IndexOutOfBoundsException("Slot " + slot + " not in valid range - [0," + getSlots() + ")");
         }
     }
 }

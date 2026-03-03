@@ -1,40 +1,39 @@
 package pl.pzmod.capabilities;
 
-import net.minecraft.core.component.DataComponentType;
-import net.neoforged.neoforge.common.MutableDataComponentHolder;
+import pl.pzmod.capabilities.proxy.Proxy;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class CapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT, ATTACHED> {
-    private final HOLDER parent;
-    private final DataComponentType<ATTACHED> component;
-    private final CONTEXT context;
-    private final Predicate<CONTEXT> canInsert;
-    private final Predicate<CONTEXT> canExtract;
+public abstract class CapabilityResolver<H extends Proxy<?>, T, C> {
+    private final H dataHolder;
+    private final Supplier<T> dataType;
+    private final C context;
+    private final Predicate<C> canInsert;
+    private final Predicate<C> canExtract;
 
-    protected CapabilityResolver(HOLDER parent,
-                                 Supplier<DataComponentType<ATTACHED>> component,
-                                 CONTEXT context,
-                                 Predicate<CONTEXT> canInsert,
-                                 Predicate<CONTEXT> canExtract) {
-        this.parent = parent;
-        this.component = component.get();
+    protected CapabilityResolver(H dataHolder,
+                                 Supplier<T> dataType,
+                                 C context,
+                                 Predicate<C> canInsert,
+                                 Predicate<C> canExtract) {
+        this.dataHolder = dataHolder;
+        this.dataType = dataType;
         this.context = context;
         this.canInsert = canInsert;
         this.canExtract = canExtract;
     }
 
-    protected ATTACHED getAttached(ATTACHED defaultValue) {
-        return parent.getOrDefault(component, defaultValue);
+    protected H getDataHolder() {
+        return dataHolder;
     }
 
-    protected void setAttached(ATTACHED value) {
-        parent.set(component, value);
+    protected <D> D getData(D defaultValue) {
+        return dataHolder.getData(dataType, defaultValue);
     }
 
-    protected HOLDER getParent() {
-        return parent;
+    protected <D> void setData(D value) {
+        dataHolder.setData(dataType, value);
     }
 
     protected boolean canInsert() {

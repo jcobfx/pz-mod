@@ -14,18 +14,18 @@ public class PZDataComponents {
     private static final DeferredRegister.DataComponents DATA_COMPONENTS =
             DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, PZMod.MODID);
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedItems>> ATTACHED_ITEMS =
-            DATA_COMPONENTS.registerComponentType("attached_items", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedItems>> ITEMS_COMPONENT =
+            DATA_COMPONENTS.registerComponentType("items_component", builder -> builder
                     .persistent(AttachedItems.CODEC)
                     .networkSynchronized(AttachedItems.STREAM_CODEC));
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedEnergy>> ATTACHED_ENERGY =
-            DATA_COMPONENTS.registerComponentType("attached_energy", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedEnergy>> ENERGY_COMPONENT =
+            DATA_COMPONENTS.registerComponentType("energy_component", builder -> builder
                     .persistent(AttachedEnergy.CODEC)
                     .networkSynchronized(AttachedEnergy.STREAM_CODEC));
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedFluids>> ATTACHED_FLUIDS =
-            DATA_COMPONENTS.registerComponentType("attached_fluid", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<AttachedFluids>> FLUIDS_COMPONENT =
+            DATA_COMPONENTS.registerComponentType("fluid_component", builder -> builder
                     .persistent(AttachedFluids.CODEC)
                     .networkSynchronized(AttachedFluids.STREAM_CODEC));
 

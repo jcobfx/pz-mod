@@ -12,7 +12,6 @@ import pl.pzmod.data.SerializerHelper;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public record AttachedItems(List<ItemStack> items) {
     public static final AttachedItems EMPTY = new AttachedItems(NonNullList.create());

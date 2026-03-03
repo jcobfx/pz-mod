@@ -5,10 +5,8 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class BackpackItem extends PZItem {
     public BackpackItem(Properties properties) {
@@ -44,17 +42,13 @@ public class BackpackItem extends PZItem {
     }
 
     @Override
-    public int getSlots() {
+    public int getSlotCount() {
         return 1;
     }
 
     @Override
-    public int getLimit() {
-        return 2;
-    }
-
-    private @Nullable IItemHandler getItemHandler(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.ItemHandler.ITEM);
+    public int getSlotLimit() {
+        return 100;
     }
 
     @Override

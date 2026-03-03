@@ -6,9 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.BiPredicate;
 
 public interface IFluidHolder {
-    int getTanks();
+    int getTankCount();
 
-    int getCapacity();
+    int getTankCapacity();
 
-    BiPredicate<Integer, @NotNull FluidStack> getValidator();
+    BiPredicate<Integer, @NotNull FluidStack> getFluidValidator();
 }

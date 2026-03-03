@@ -10,8 +10,7 @@ import pl.pzmod.capabilities.item.IItemHolder;
 import java.util.function.BiPredicate;
 
 public abstract class PZBlock extends Block implements IEnergyHolder, IItemHolder, IFluidHolder {
-
-    public PZBlock(Properties properties) {
+    protected PZBlock(Properties properties) {
         super(properties);
     }
 
@@ -26,27 +25,27 @@ public abstract class PZBlock extends Block implements IEnergyHolder, IItemHolde
     }
 
     @Override
-    public int getTanks() {
+    public int getSlotCount() {
         return 0;
     }
 
     @Override
-    public int getCapacity() {
+    public int getSlotLimit() {
         return 0;
     }
 
     @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getValidator() {
+    public int getTankCount() {
+        return 0;
+    }
+
+    @Override
+    public int getTankCapacity() {
+        return 0;
+    }
+
+    @Override
+    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
         return null;
-    }
-
-    @Override
-    public int getSlots() {
-        return 0;
-    }
-
-    @Override
-    public int getLimit() {
-        return 0;
     }
 }

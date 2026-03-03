@@ -5,20 +5,16 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import pl.pzmod.PZMod;
 
 public class BatteryItem extends PZItem {
@@ -52,7 +48,7 @@ public class BatteryItem extends PZItem {
 
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
+    public @NotNull InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         Player player = context.getPlayer();
         BlockPos pos = context.getClickedPos();
@@ -64,7 +60,7 @@ public class BatteryItem extends PZItem {
         if (!state.is(BATTERY_CHARGERS)) return InteractionResult.PASS;
 
         ItemStack batteryStack = context.getItemInHand();
-        IEnergyStorage batteryCap = batteryStack.getCapability(Capabilities.EnergyStorage.ITEM);
+        IEnergyStorage batteryCap = getEnergyStorage(batteryStack);
 
         IEnergyStorage blockEnergy = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, context.getClickedFace());
         if (blockEnergy == null) {
@@ -114,15 +110,8 @@ public class BatteryItem extends PZItem {
         return 1000;
     }
 
-    private int getEnergy(@NotNull ItemStack stack) {
+    private int getEnergy(ItemStack stack) {
         IEnergyStorage energyStorage = getEnergyStorage(stack);
-        if (energyStorage != null) {
-            return energyStorage.getEnergyStored();
-        }
-        return 0;
-    }
-
-    private @Nullable IEnergyStorage getEnergyStorage(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        return energyStorage != null ? energyStorage.getEnergyStored() : 0;
     }
 }

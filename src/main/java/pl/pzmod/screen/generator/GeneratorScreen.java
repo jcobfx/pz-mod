@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 import pl.pzmod.PZMod;
 
 public class GeneratorScreen extends AbstractContainerScreen<GeneratorMenu> {
-
     private static final ResourceLocation GUI_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(PZMod.MODID, "textures/gui/generator/generator_gui.png");
 

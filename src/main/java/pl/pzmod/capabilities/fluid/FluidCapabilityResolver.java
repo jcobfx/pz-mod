@@ -1,47 +1,37 @@
 package pl.pzmod.capabilities.fluid;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.MutableDataComponentHolder;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.CapabilityResolver;
+import pl.pzmod.capabilities.proxy.Proxy;
 import pl.pzmod.data.containers.AttachedFluids;
 
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-import static pl.pzmod.registries.PZDataComponents.ATTACHED_FLUIDS;
+public class FluidCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IFluidHandler {
+    private final int tankCount;
+    private final int tankCapacity;
+    private final BiPredicate<Integer, FluidStack> fluidValidator;
 
-public class FluidCapabilityResolver<HOLDER extends MutableDataComponentHolder, CONTEXT>
-        extends CapabilityResolver<HOLDER, CONTEXT, AttachedFluids> implements IFluidHandlerItem {
-    private final int tanks;
-    private final int capacity;
-    private final BiPredicate<Integer, FluidStack> validator;
-
-    protected FluidCapabilityResolver(HOLDER parent,
-                                      CONTEXT context,
-                                      Predicate<CONTEXT> canFill,
-                                      Predicate<CONTEXT> canDrain,
-                                      int tanks,
-                                      int capacity,
-                                      BiPredicate<Integer, @NotNull FluidStack> validator) {
-        super(parent, ATTACHED_FLUIDS, context, canFill, canDrain);
-        this.tanks = tanks;
-        this.capacity = capacity;
-        this.validator = validator;
-    }
-
-    @Override
-    public @NotNull ItemStack getContainer() {
-        return (ItemStack) getParent();
+    protected FluidCapabilityResolver(Proxy<P> dataHolder,
+                                      Supplier<T> dataType,
+                                      C context,
+                                      Predicate<C> canFill,
+                                      Predicate<C> canDrain) {
+        super(dataHolder, dataType, context, canFill, canDrain);
+        this.tankCount = dataHolder.getTankCount();
+        this.tankCapacity = dataHolder.getTankCapacity();
+        this.fluidValidator = dataHolder.getFluidValidator();
     }
 
     @Override
     public int getTanks() {
-        return tanks;
+        return tankCount;
     }
 
     @Override
@@ -52,12 +42,12 @@ public class FluidCapabilityResolver<HOLDER extends MutableDataComponentHolder, 
 
     @Override
     public int getTankCapacity(int tank) {
-        return capacity;
+        return tankCapacity;
     }
 
     @Override
     public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-        return validator.test(tank, stack);
+        return fluidValidator.test(tank, stack);
     }
 
     @Override
@@ -126,35 +116,35 @@ public class FluidCapabilityResolver<HOLDER extends MutableDataComponentHolder, 
     }
 
     protected void onContentsChanged(int slot, FluidStack oldStack, FluidStack newStack) {
-        // I don't know
+        // Do nothing by default, can be overridden to react to changes in the fluid contents
     }
 
-    protected AttachedFluids getContents() {
-        return getAttached(AttachedFluids.EMPTY);
+    private AttachedFluids getContents() {
+        return getData(AttachedFluids.EMPTY);
     }
 
-    protected FluidStack getStackFromContents(@NotNull AttachedFluids contents, int tank) {
+    private FluidStack getStackFromContents(@NotNull AttachedFluids contents, int tank) {
         this.validateTankIndex(tank);
         return contents.getTanks() <= tank ? FluidStack.EMPTY : contents.getFluidInTank(tank);
     }
 
-    protected void updateContents(@NotNull AttachedFluids contents, FluidStack stack, int tank) {
+    private void updateContents(@NotNull AttachedFluids contents, FluidStack stack, int tank) {
         validateTankIndex(tank);
         NonNullList<FluidStack> list = NonNullList.withSize(Math.max(contents.getTanks(), getTanks()), FluidStack.EMPTY);
         contents.copyInto(list);
         FluidStack oldStack = list.get(tank);
         list.set(tank, stack);
-        setAttached(new AttachedFluids(list));
+        setData(new AttachedFluids(list));
         onContentsChanged(tank, oldStack, stack);
     }
 
-    protected final void validateTankIndex(int tank) {
+    private final void validateTankIndex(int tank) {
         if (tank < 0 || tank >= getTanks()) {
-            throw new RuntimeException("Tank " + tank + " not in valid range - [0," + getTanks() + ")");
+            throw new IndexOutOfBoundsException("Tank " + tank + " not in valid range - [0," + getTanks() + ")");
         }
     }
 
-    protected Optional<Integer> findFirstValidTank(@NotNull FluidStack stack) {
+    private Optional<Integer> findFirstValidTank(@NotNull FluidStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
@@ -168,7 +158,7 @@ public class FluidCapabilityResolver<HOLDER extends MutableDataComponentHolder, 
         return Optional.empty();
     }
 
-    protected Optional<Integer> findFirstDrainableTank(@NotNull FluidStack stack) {
+    private Optional<Integer> findFirstDrainableTank(@NotNull FluidStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
