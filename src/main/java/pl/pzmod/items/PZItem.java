@@ -42,7 +42,7 @@ public abstract class PZItem extends Item implements IEnergyHolder, IFluidHolder
 
     @Override
     public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return null;
+        return (slot, stack) -> false;
     }
 
     @Override

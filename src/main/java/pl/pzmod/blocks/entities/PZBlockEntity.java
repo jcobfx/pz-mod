@@ -45,7 +45,7 @@ public abstract class PZBlockEntity extends BlockEntity implements IEnergyHolder
 
     @Override
     public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return null;
+        return (slot, stack) -> false;
     }
 
     @Override
