@@ -1,11 +1,9 @@
 package pl.pzmod.capabilities;
 
-import pl.pzmod.capabilities.proxy.Proxy;
-
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public abstract class CapabilityResolver<H extends Proxy<?>, T, C> {
+public abstract class CapabilityResolver<H extends IDataHolder<?, A, T>, A, T, C> {
     private final H dataHolder;
     private final Supplier<T> dataType;
     private final C context;
@@ -28,11 +26,11 @@ public abstract class CapabilityResolver<H extends Proxy<?>, T, C> {
         return dataHolder;
     }
 
-    protected <D> D getData(D defaultValue) {
-        return dataHolder.getData(dataType, defaultValue);
+    protected A getData(A defaultValue) {
+        return dataHolder.getData(dataType).orElse(defaultValue);
     }
 
-    protected <D> void setData(D value) {
+    protected void setData(A value) {
         dataHolder.setData(dataType, value);
     }
 

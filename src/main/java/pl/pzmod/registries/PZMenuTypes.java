@@ -17,10 +17,10 @@ public class PZMenuTypes {
             DeferredRegister.create(Registries.MENU, PZMod.MODID);
 
     public static final DeferredHolder<MenuType<?>, MenuType<GeneratorMenu>> GENERATOR =
-            MENUS.register("generator_menu", () -> new MenuType<>(GeneratorMenu::new, FeatureFlags.DEFAULT_FLAGS));
+            registerMenuType("generator_menu", GeneratorMenu::new);
 
-    private static <T extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<T>> registerMenuTypes(String name,
-                                                                                                                IContainerFactory<T> factory) {
+    private static <T extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name,
+                                                                                                               IContainerFactory<T> factory) {
         return MENUS.register(name, () -> IMenuTypeExtension.create(factory));
     }
 

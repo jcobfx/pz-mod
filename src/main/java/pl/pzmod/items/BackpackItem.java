@@ -14,6 +14,16 @@ public class BackpackItem extends PZItem {
     }
 
     @Override
+    public int getSlotCount() {
+        return 1;
+    }
+
+    @Override
+    public int getSlotLimit() {
+        return 100;
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level,
                                                            @NotNull Player player,
                                                            @NotNull InteractionHand usedHand) {
@@ -39,16 +49,6 @@ public class BackpackItem extends PZItem {
             }
         }
         return InteractionResultHolder.pass(backpack);
-    }
-
-    @Override
-    public int getSlotCount() {
-        return 1;
-    }
-
-    @Override
-    public int getSlotLimit() {
-        return 100;
     }
 
     @Override

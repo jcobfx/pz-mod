@@ -42,26 +42,6 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
     }
 
     @Override
-    public int getEnergyCapacity() {
-        return 100_000;
-    }
-
-    @Override
-    public int getEnergyMaxTransfer() {
-        return 1000;
-    }
-
-    @Override
-    public int getSlotCount() {
-        return 1;
-    }
-
-    @Override
-    public int getSlotLimit() {
-        return 100;
-    }
-
-    @Override
     protected @NotNull MapCodec<GeneratorBlock> codec() {
         return CODEC;
     }

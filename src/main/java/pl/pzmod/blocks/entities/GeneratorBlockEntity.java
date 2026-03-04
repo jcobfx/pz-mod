@@ -38,24 +38,8 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
             @Override
             public int get(int index) {
                 return switch (index) {
-                    case 0 -> {
-                        var energyStorage = GeneratorBlockEntity.this.getEnergyStorage(null);
-                        if (energyStorage != null) {
-                            yield energyStorage.getEnergyStored();
-                        } else {
-                            yield 0;
-                        }
-                    }
-                    case 1 -> {
-                        var energyStorage = GeneratorBlockEntity.this.getEnergyStorage(null);
-                        if (energyStorage != null) {
-                            yield energyStorage.getMaxEnergyStored();
-                        } else {
-                            yield 0;
-                        }
-                    }
-                    case 2 -> GeneratorBlockEntity.this.burnTime;
-                    case 3 -> GeneratorBlockEntity.this.burnTimeTotal;
+                    case 0 -> GeneratorBlockEntity.this.burnTime;
+                    case 1 -> GeneratorBlockEntity.this.burnTimeTotal;
                     default -> 0;
                 };
             }
@@ -63,19 +47,39 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
             @Override
             public void set(int index, int value) {
                 switch (index) {
-                    case 2 -> GeneratorBlockEntity.this.burnTime = value;
-                    case 3 -> GeneratorBlockEntity.this.burnTimeTotal = value;
+                    case 0 -> GeneratorBlockEntity.this.burnTime = value;
+                    case 1 -> GeneratorBlockEntity.this.burnTimeTotal = value;
                     default -> {
-                        // No other values should be set from the client, so we ignore them.
+                        // Ignore invalid index
                     }
                 }
             }
 
             @Override
             public int getCount() {
-                return 4;
+                return 2;
             }
         };
+    }
+
+    @Override
+    public int getEnergyCapacity() {
+        return 100_000;
+    }
+
+    @Override
+    public int getEnergyMaxTransfer() {
+        return 1000;
+    }
+
+    @Override
+    public int getSlotCount() {
+        return 1;
+    }
+
+    @Override
+    public int getSlotLimit() {
+        return 100;
     }
 
     @Override
@@ -83,12 +87,12 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
         return Component.translatable("block.pz_mod.generator");
     }
 
-    @Nullable
     @Override
-    public AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player player) {
+    public @Nullable AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player player) {
         return new GeneratorMenu(i,
                 playerInventory,
                 Objects.requireNonNull(getItemHandler(null)),
+                Objects.requireNonNull(getEnergyStorage(null)),
                 this.data,
                 ContainerLevelAccess.create(Objects.requireNonNull(getLevel()), getBlockPos()));
     }

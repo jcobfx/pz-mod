@@ -25,27 +25,15 @@ public class BatteryItem extends PZItem {
         private static final TagKey<Block> BATTERY_CHARGERS =
                 TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(PZMod.MODID, "battery_chargers"));
 
-//    @Override
-//    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level,
-//                                                           @NotNull Player player,
-//                                                           @NotNull InteractionHand usedHand) {
-//        ItemStack itemInHand = player.getItemInHand(usedHand);
-//        if (usedHand == InteractionHand.MAIN_HAND) {
-//            IEnergyStorage energyStorage = getEnergyStorage(itemInHand);
-//            if (energyStorage != null) {
-//                if (player.isShiftKeyDown() && energyStorage.canExtract()) {
-//                    energyStorage.extractEnergy(100, false);
-//                    return InteractionResultHolder.success(itemInHand);
-//                } else if (energyStorage.canReceive()) {
-//                    energyStorage.receiveEnergy(100, false);
-//                    return InteractionResultHolder.success(itemInHand);
-//                }
-//            }
-//        }
-//        return InteractionResultHolder.pass(itemInHand);
-//    }
+    @Override
+    public int getEnergyCapacity() {
+        return 10000;
+    }
 
-
+    @Override
+    public int getEnergyMaxTransfer() {
+        return 1000;
+    }
 
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
@@ -98,16 +86,6 @@ public class BatteryItem extends PZItem {
     @Override
     public int getBarColor(@NotNull ItemStack stack) {
         return Mth.hsvToRgb(1.0F / 3.0F, 1.0F, 1.0F);
-    }
-
-    @Override
-    public int getEnergyCapacity() {
-        return 10000;
-    }
-
-    @Override
-    public int getEnergyMaxTransfer() {
-        return 1000;
     }
 
     private int getEnergy(ItemStack stack) {

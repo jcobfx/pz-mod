@@ -15,7 +15,7 @@ import pl.pzmod.capabilities.item.IItemHolder;
 
 import java.util.function.BiPredicate;
 
-public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder, IFluidHolder {
+public abstract class PZItem extends Item implements IEnergyHolder, IFluidHolder, IItemHolder {
     protected PZItem(Properties properties) {
         super(properties);
     }
@@ -27,16 +27,6 @@ public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder,
 
     @Override
     public int getEnergyMaxTransfer() {
-        return 0;
-    }
-
-    @Override
-    public int getSlotCount() {
-        return 0;
-    }
-
-    @Override
-    public int getSlotLimit() {
         return 0;
     }
 
@@ -55,15 +45,25 @@ public abstract class PZItem extends Item implements IEnergyHolder, IItemHolder,
         return null;
     }
 
+    @Override
+    public int getSlotCount() {
+        return 0;
+    }
+
+    @Override
+    public int getSlotLimit() {
+        return 0;
+    }
+
     public @Nullable IEnergyStorage getEnergyStorage(@NotNull ItemStack stack) {
         return stack.getCapability(Capabilities.EnergyStorage.ITEM);
     }
 
-    public @Nullable IItemHandler getItemHandler(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.ItemHandler.ITEM);
-    }
-
     public @Nullable IFluidHandler getFluidHandler(@NotNull ItemStack stack) {
         return stack.getCapability(Capabilities.FluidHandler.ITEM);
+    }
+
+    public @Nullable IItemHandler getItemHandler(@NotNull ItemStack stack) {
+        return stack.getCapability(Capabilities.ItemHandler.ITEM);
     }
 }

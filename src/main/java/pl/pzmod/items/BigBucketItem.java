@@ -38,6 +38,21 @@ public class BigBucketItem extends PZItem {
     }
 
     @Override
+    public int getTankCount() {
+        return 1;
+    }
+
+    @Override
+    public int getTankCapacity() {
+        return 2000;
+    }
+
+    @Override
+    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
+        return (tank, stack) -> true;
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         ItemStack bigBucket = player.getItemInHand(usedHand);
         IFluidHandler fluidTank = getFluidHandler(bigBucket);
@@ -144,21 +159,6 @@ public class BigBucketItem extends PZItem {
     @Override
     public int getBarColor(@NotNull ItemStack stack) {
         return Mth.hsvToRgb(1.0F / 3.0F, 1.0F, 1.0F);
-    }
-
-    @Override
-    public int getTankCount() {
-        return 1;
-    }
-
-    @Override
-    public int getTankCapacity() {
-        return 2000;
-    }
-
-    @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return (tank, stack) -> true;
     }
 
     private int getFluidAmount(@NotNull ItemStack stack) {

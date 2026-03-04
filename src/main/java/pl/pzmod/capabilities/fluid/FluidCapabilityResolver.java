@@ -5,7 +5,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.CapabilityResolver;
-import pl.pzmod.capabilities.proxy.Proxy;
+import pl.pzmod.capabilities.IDataHolder;
 import pl.pzmod.data.containers.AttachedFluids;
 
 import java.util.Optional;
@@ -13,20 +13,21 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class FluidCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IFluidHandler {
+public class FluidCapabilityResolver<H extends IDataHolder<?, AttachedFluids, T>, T, C>
+        extends CapabilityResolver<H, AttachedFluids, T, C> implements IFluidHandler {
     private final int tankCount;
     private final int tankCapacity;
     private final BiPredicate<Integer, FluidStack> fluidValidator;
 
-    protected FluidCapabilityResolver(Proxy<P> dataHolder,
+    protected FluidCapabilityResolver(H dataHolder,
                                       Supplier<T> dataType,
                                       C context,
                                       Predicate<C> canFill,
                                       Predicate<C> canDrain) {
         super(dataHolder, dataType, context, canFill, canDrain);
-        this.tankCount = dataHolder.getTankCount();
-        this.tankCapacity = dataHolder.getTankCapacity();
-        this.fluidValidator = dataHolder.getFluidValidator();
+        this.tankCount = dataHolder.get().getTankCount();
+        this.tankCapacity = dataHolder.get().getTankCapacity();
+        this.fluidValidator = dataHolder.get().getFluidValidator();
     }
 
     @Override

@@ -5,24 +5,25 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.CapabilityResolver;
-import pl.pzmod.capabilities.proxy.Proxy;
+import pl.pzmod.capabilities.IDataHolder;
 import pl.pzmod.data.containers.AttachedItems;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ItemCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IItemHandlerModifiable {
+public class ItemCapabilityResolver<H extends IDataHolder<?, AttachedItems, T>, T, C>
+        extends CapabilityResolver<H, AttachedItems, T, C> implements IItemHandlerModifiable {
     private final int slotCount;
     private final int slotLimit;
 
-    protected ItemCapabilityResolver(Proxy<P> dataHolder,
+    protected ItemCapabilityResolver(H dataHolder,
                                      Supplier<T> dataType,
                                      C context,
                                      Predicate<C> canInsert,
                                      Predicate<C> canExtract) {
         super(dataHolder, dataType, context, canInsert, canExtract);
-        this.slotCount = dataHolder.getSlotCount();
-        this.slotLimit = dataHolder.getSlotLimit();
+        this.slotCount = dataHolder.get().getSlotCount();
+        this.slotLimit = dataHolder.get().getSlotLimit();
     }
 
     @Override

@@ -3,24 +3,25 @@ package pl.pzmod.capabilities.energy;
 import net.minecraft.util.Mth;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import pl.pzmod.capabilities.CapabilityResolver;
-import pl.pzmod.capabilities.proxy.Proxy;
+import pl.pzmod.capabilities.IDataHolder;
 import pl.pzmod.data.containers.AttachedEnergy;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class EnergyCapabilityResolver<P, T, C> extends CapabilityResolver<Proxy<P>, T, C> implements IEnergyStorage {
+public class EnergyCapabilityResolver<H extends IDataHolder<?, AttachedEnergy, T>, T, C>
+        extends CapabilityResolver<H, AttachedEnergy, T, C> implements IEnergyStorage {
     private final int capacity;
     private final int maxTransfer;
 
-    public EnergyCapabilityResolver(Proxy<P> energyHolder,
+    public EnergyCapabilityResolver(H energyHolder,
                                     Supplier<T> dataType,
                                     C context,
                                     Predicate<C> canReceive,
                                     Predicate<C> canExtract) {
         super(energyHolder, dataType, context, canReceive, canExtract);
-        this.capacity = energyHolder.getEnergyCapacity();
-        this.maxTransfer = energyHolder.getEnergyMaxTransfer();
+        this.capacity = energyHolder.get().getEnergyCapacity();
+        this.maxTransfer = energyHolder.get().getEnergyMaxTransfer();
     }
 
     @Override

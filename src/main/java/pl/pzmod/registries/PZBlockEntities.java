@@ -10,8 +10,8 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
-import pl.pzmod.capabilities.energy.BlockEnergyCapabilityResolver;
-import pl.pzmod.capabilities.item.BlockItemCapabilityResolver;
+import pl.pzmod.capabilities.energy.BlockEntityEnergyCapabilityResolver;
+import pl.pzmod.capabilities.item.GeneratorBlockItemCapabilityResolver;
 
 import java.util.function.Supplier;
 
@@ -33,14 +33,12 @@ public class PZBlockEntities {
         event.registerBlockEntity(
                 Capabilities.EnergyStorage.BLOCK,
                 GENERATOR.get(),
-                (blockEntity, side) -> new BlockEnergyCapabilityResolver(blockEntity, side,
-                        s -> true, s -> true)
+                BlockEntityEnergyCapabilityResolver::new
         );
         event.registerBlockEntity(
                 Capabilities.ItemHandler.BLOCK,
                 GENERATOR.get(),
-                (blockEntity, side) -> new BlockItemCapabilityResolver(blockEntity, side,
-                        s -> true, s -> true)
+                GeneratorBlockItemCapabilityResolver::new
         );
     }
 
