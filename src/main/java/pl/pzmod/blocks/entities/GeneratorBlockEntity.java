@@ -4,9 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -16,9 +13,17 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.capabilities.ContainerHandlerHelper;
+import pl.pzmod.capabilities.energy.EnergyContainerConfig;
+import pl.pzmod.capabilities.items.ItemContainerConfig;
+import pl.pzmod.data.containers.IContainerHolder;
+import pl.pzmod.data.containers.energy.EnergyHandler;
+import pl.pzmod.data.containers.items.ItemHandler;
 import pl.pzmod.registries.PZBlockEntities;
 import pl.pzmod.screen.generator.GeneratorMenu;
 
@@ -26,6 +31,39 @@ import java.util.Objects;
 
 public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider {
     private static final int ENERGY_PER_TICK = 20;
+
+    public static void tick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
+        if (level.isClientSide()) return;
+        var energyStorage = Capabilities.ENERGY.getCapability(level, pos, state, be, null);
+        var inventory = Capabilities.ITEM.getCapability(level, pos, state, be, null);
+        if (energyStorage == null || inventory == null) {
+            return;
+        }
+
+        boolean changed = false;
+        if (be.burnTime > 0) {
+            be.burnTime--;
+            energyStorage.receiveEnergy(ENERGY_PER_TICK, false);
+            changed = true;
+        }
+
+        if (be.burnTime <= 0 && energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
+            ItemStack fuelStack = inventory.getStackInSlot(0);
+            if (!fuelStack.isEmpty()) {
+                int burnTicks = fuelStack.getBurnTime(RecipeType.SMELTING);
+                if (burnTicks > 0) {
+                    be.burnTime = burnTicks;
+                    be.burnTimeTotal = burnTicks;
+                    inventory.extractItem(0, 1, false);
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            be.setChanged();
+        }
+    }
 
     private final ContainerData data;
 
@@ -63,23 +101,27 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
     }
 
     @Override
-    public int getEnergyCapacity() {
-        return 100_000;
+    public @NotNull EnergyHandler getInitialEnergyHandler(@NotNull BlockEntity blockEntity) {
+        return ContainerHandlerHelper.builder(new EnergyHandler(this::getFacing), IContainerHolder.from(blockEntity, 1))
+                .addContainer(EnergyContainerConfig.output(() -> 100_000, () -> 1000))
+                .build();
     }
 
     @Override
-    public int getEnergyMaxTransfer() {
-        return 1000;
+    public boolean canHandleEnergy() {
+        return true;
     }
 
     @Override
-    public int getSlotCount() {
-        return 1;
+    public @NotNull ItemHandler getInitialItemHandler(@NotNull BlockEntity blockEntity) {
+        return ContainerHandlerHelper.builder(new ItemHandler(this::getFacing), IContainerHolder.from(blockEntity, 1))
+                .addContainer(ItemContainerConfig.input(stack -> stack.getBurnTime(RecipeType.SMELTING) > 0, () -> 100))
+                .build();
     }
 
     @Override
-    public int getSlotLimit() {
-        return 100;
+    public boolean canHandleItems() {
+        return true;
     }
 
     @Override
@@ -89,45 +131,16 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int i, @NotNull Inventory playerInventory, @NotNull Player player) {
+        var level = Objects.requireNonNull(getLevel());
+        var pos = getBlockPos();
+        var state = getBlockState();
+        var blockEntity = level.getBlockEntity(pos);
         return new GeneratorMenu(i,
                 playerInventory,
-                Objects.requireNonNull(getItemHandler(null)),
-                Objects.requireNonNull(getEnergyStorage(null)),
+                Objects.requireNonNull(Capabilities.ITEM.getCapability(level, pos, state, blockEntity, null)),
+                Objects.requireNonNull(Capabilities.ENERGY.getCapability(level, pos, state, blockEntity, null)),
                 this.data,
-                ContainerLevelAccess.create(Objects.requireNonNull(getLevel()), getBlockPos()));
-    }
-
-    public static void tick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
-        if (level.isClientSide()) return;
-        var energyStorage = be.getEnergyStorage(null);
-        var inventory = be.getItemHandler(null);
-        if (energyStorage == null || inventory == null) {
-            return;
-        }
-
-        boolean changed = false;
-        if (be.burnTime > 0) {
-            be.burnTime--;
-            energyStorage.receiveEnergy(ENERGY_PER_TICK, false);
-            changed = true;
-        }
-
-        if (be.burnTime <= 0 && energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
-            ItemStack fuelStack = inventory.getStackInSlot(0);
-            if (!fuelStack.isEmpty()) {
-                int burnTicks = fuelStack.getBurnTime(RecipeType.SMELTING);
-                if (burnTicks > 0) {
-                    be.burnTime = burnTicks;
-                    be.burnTimeTotal = burnTicks;
-                    inventory.extractItem(0, 1, false);
-                    changed = true;
-                }
-            }
-        }
-
-        if (changed) {
-            be.setChanged();
-        }
+                ContainerLevelAccess.create(level, pos));
     }
 
     @Override
@@ -142,10 +155,5 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
         super.loadAdditional(tag, registries);
         burnTime = tag.getInt("burnTime");
         burnTimeTotal = tag.getInt("burnTimeTotal");
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

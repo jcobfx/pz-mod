@@ -1,80 +1,70 @@
 package pl.pzmod.capabilities.energy;
 
-import net.minecraft.util.Mth;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import pl.pzmod.capabilities.CapabilityResolver;
-import pl.pzmod.capabilities.IDataHolder;
-import pl.pzmod.data.containers.AttachedEnergy;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import pl.pzmod.blocks.entities.PZBlockEntity;
+import pl.pzmod.data.containers.Action;
+import pl.pzmod.data.containers.energy.ISidedEnergyHandler;
+import pl.pzmod.items.PZItem;
 
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.Objects;
 
-public class EnergyCapabilityResolver<H extends IDataHolder<?, AttachedEnergy, T>, T, C>
-        extends CapabilityResolver<H, AttachedEnergy, T, C> implements IEnergyStorage {
-    private final int capacity;
-    private final int maxTransfer;
+public class EnergyCapabilityResolver implements ISidedEnergyHandler {
+    private final ISidedEnergyHandler handler;
+    private final @Nullable Direction side;
 
-    public EnergyCapabilityResolver(H energyHolder,
-                                    Supplier<T> dataType,
-                                    C context,
-                                    Predicate<C> canReceive,
-                                    Predicate<C> canExtract) {
-        super(energyHolder, dataType, context, canReceive, canExtract);
-        this.capacity = energyHolder.get().getEnergyCapacity();
-        this.maxTransfer = energyHolder.get().getEnergyMaxTransfer();
+    public static ISidedEnergyHandler forBlockEntity(@NotNull PZBlockEntity blockEntity, @Nullable Direction side) {
+        return new EnergyCapabilityResolver(Objects.requireNonNull(blockEntity.getEnergyHandler(blockEntity)), side);
+    }
+
+    public static ISidedEnergyHandler forItem(@NotNull ItemStack stack, @NotNull PZItem item) {
+        return new EnergyCapabilityResolver(Objects.requireNonNull(item.getEnergyHandler(stack)), null);
+    }
+
+    private EnergyCapabilityResolver(@NotNull ISidedEnergyHandler handler, @Nullable Direction side) {
+        this.handler = handler;
+        this.side = side;
     }
 
     @Override
-    public int receiveEnergy(int toReceive, boolean simulate) {
-        if (canReceive() && toReceive > 0) {
-            int energy = getEnergyStored();
-            int energyReceived = Mth.clamp(capacity - energy, 0, Math.min(maxTransfer, toReceive));
-            if (!simulate && energyReceived > 0) {
-                setEnergy(energy + energyReceived);
-            }
-            return energyReceived;
-        } else {
-            return 0;
-        }
+    public @Nullable Direction getDefaultSide() {
+        return side;
     }
 
     @Override
-    public int extractEnergy(int toExtract, boolean simulate) {
-        if (canExtract() && toExtract > 0) {
-            int energy = getEnergyStored();
-            int energyExtracted = Math.min(energy, Math.min(maxTransfer, toExtract));
-            if (!simulate && energyExtracted > 0) {
-                setEnergy(energy - energyExtracted);
-            }
-            return energyExtracted;
-        } else {
-            return 0;
-        }
-    }
-
-    protected void setEnergy(int energy) {
-        int realEnergy = Mth.clamp(energy, 0, capacity);
-        setData(new AttachedEnergy(realEnergy));
+    public int getStorages(@Nullable Direction side) {
+        return handler.getStorages(side);
     }
 
     @Override
-    public boolean canExtract() {
-        return super.canExtract() && maxTransfer > 0;
+    public int insertEnergy(int storage, int energy, @Nullable Direction side, @NotNull Action action) {
+        return handler.insertEnergy(storage, energy, side, action);
     }
 
     @Override
-    public boolean canReceive() {
-        return super.canInsert() && maxTransfer > 0;
+    public int extractEnergy(int storage, int energy, @Nullable Direction side, @NotNull Action action) {
+        return handler.extractEnergy(storage, energy, side, action);
     }
 
     @Override
-    public int getEnergyStored() {
-        int rawEnergy = getData(AttachedEnergy.EMPTY).energy();
-        return Mth.clamp(rawEnergy, 0, capacity);
+    public int getEnergy(int storage, @Nullable Direction side) {
+        return handler.getEnergy(storage, side);
     }
 
     @Override
-    public int getMaxEnergyStored() {
-        return capacity;
+    public int getEnergyCapacity(int storage, @Nullable Direction side) {
+        return handler.getEnergyCapacity(storage, side);
+    }
+
+    @Override
+    public boolean canInsert(int storage, @Nullable Direction side) {
+        return handler.canInsert(storage, side);
+    }
+
+    @Override
+    public boolean canExtract(int storage, @Nullable Direction side) {
+        return handler.canExtract(storage, side);
     }
 }

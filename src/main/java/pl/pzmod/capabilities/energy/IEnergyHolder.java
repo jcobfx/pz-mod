@@ -1,7 +1,12 @@
 package pl.pzmod.capabilities.energy;
 
-public interface IEnergyHolder {
-    int getEnergyCapacity();
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import pl.pzmod.data.containers.energy.EnergyHandler;
 
-    int getEnergyMaxTransfer();
+public interface IEnergyHolder<H> {
+    @Nullable
+    EnergyHandler getEnergyHandler(@NotNull H holder);
+
+    boolean canHandleEnergy();
 }

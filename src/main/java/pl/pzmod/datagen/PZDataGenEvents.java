@@ -19,7 +19,7 @@ public class PZDataGenEvents {
         PackOutput output = generator.getPackOutput();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
-//        generator.addProvider(event.includeClient(), new PZItemModelProvider(output, existingFileHelper));
+        generator.addProvider(event.includeClient(), new PZItemModelProvider(output, existingFileHelper));
         generator.addProvider(event.includeServer(), new PZLootProvider(output, lookupProvider));
     }
 

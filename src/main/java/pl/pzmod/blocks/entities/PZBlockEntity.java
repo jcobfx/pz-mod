@@ -5,88 +5,80 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pl.pzmod.blocks.GeneratorBlock;
 import pl.pzmod.capabilities.energy.IEnergyHolder;
-import pl.pzmod.capabilities.fluid.IFluidHolder;
-import pl.pzmod.capabilities.item.IItemHolder;
+import pl.pzmod.capabilities.fluids.IFluidHolder;
+import pl.pzmod.capabilities.items.IItemHolder;
+import pl.pzmod.data.containers.energy.EnergyHandler;
+import pl.pzmod.data.containers.fluids.FluidHandler;
+import pl.pzmod.data.containers.items.ItemHandler;
 
-import java.util.function.BiPredicate;
+public abstract class PZBlockEntity extends BlockEntity implements IEnergyHolder<BlockEntity>, IFluidHolder<BlockEntity>, IItemHolder<BlockEntity> {
+//    private final BlockCapabilityCache<PZBlockEntity, @Nullable Direction> capabilityCache;
 
-public abstract class PZBlockEntity extends BlockEntity implements IEnergyHolder, IFluidHolder, IItemHolder {
+    private EnergyHandler energyHandler;
+    private FluidHandler fluidHandler;
+    private ItemHandler itemHandler;
+
     protected PZBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
+//        this.capabilityCache = null;
+    }
+
+    protected @NotNull Direction getFacing() {
+        return getBlockState().getValue(GeneratorBlock.FACING);
+    }
+
+    protected @Nullable EnergyHandler getInitialEnergyHandler(@NotNull BlockEntity blockEntity) {
+        return null;
     }
 
     @Override
-    public int getEnergyCapacity() {
-        return 0;
-    }
-
-    @Override
-    public int getEnergyMaxTransfer() {
-        return 0;
-    }
-
-    @Override
-    public int getTankCount() {
-        return 0;
-    }
-
-    @Override
-    public int getTankCapacity() {
-        return 0;
-    }
-
-    @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return (slot, stack) -> false;
-    }
-
-    @Override
-    public int getSlotCount() {
-        return 0;
-    }
-
-    @Override
-    public int getSlotLimit() {
-        return 0;
-    }
-
-    public @Nullable IEnergyStorage getEnergyStorage(@Nullable Direction side) {
-        var level = getLevel();
-        if (level == null) {
-            return null;
+    public final @Nullable EnergyHandler getEnergyHandler(@NotNull BlockEntity blockEntity) {
+        if (energyHandler == null) {
+            energyHandler = getInitialEnergyHandler(blockEntity);
         }
-        return level.getCapability(Capabilities.EnergyStorage.BLOCK, getBlockPos(), side);
+        return energyHandler;
     }
 
-    public @Nullable IFluidHandler getFluidHandler(@Nullable Direction side) {
-        var level = getLevel();
-        if (level == null) {
-            return null;
-        }
-        return level.getCapability(Capabilities.FluidHandler.BLOCK, getBlockPos(), side);
+    @Override
+    public boolean canHandleEnergy() {
+        return false;
     }
 
-    public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
-        var level = getLevel();
-        if (level == null) {
-            return null;
-        }
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, getBlockPos(), side);
+    protected @Nullable FluidHandler getInitialFluidHandler(@NotNull BlockEntity blockEntity) {
+        return null;
     }
 
-    public @Nullable IItemHandler getItemHandler(BlockPos pos, BlockState state, @Nullable Direction side) {
-        var level = getLevel();
-        if (level == null) {
-            return null;
+    @Override
+    public final @Nullable FluidHandler getFluidHandler(@NotNull BlockEntity blockEntity) {
+        if (fluidHandler == null) {
+            fluidHandler = getInitialFluidHandler(blockEntity);
         }
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, pos, state, this, side);
+        return fluidHandler;
+    }
+
+    @Override
+    public boolean canHandleFluids() {
+        return false;
+    }
+
+    protected @Nullable ItemHandler getInitialItemHandler(@NotNull BlockEntity blockEntity) {
+        return null;
+    }
+
+    @Override
+    public final @Nullable ItemHandler getItemHandler(@NotNull BlockEntity blockEntity) {
+        if (itemHandler == null) {
+            itemHandler = getInitialItemHandler(blockEntity);
+        }
+        return itemHandler;
+    }
+
+    @Override
+    public boolean canHandleItems() {
+        return false;
     }
 }

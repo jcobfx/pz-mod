@@ -2,68 +2,72 @@ package pl.pzmod.items;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.capabilities.energy.IEnergyHolder;
-import pl.pzmod.capabilities.fluid.IFluidHolder;
-import pl.pzmod.capabilities.item.IItemHolder;
+import pl.pzmod.capabilities.fluids.IFluidHolder;
+import pl.pzmod.capabilities.items.IItemHolder;
+import pl.pzmod.data.containers.energy.EnergyHandler;
+import pl.pzmod.data.containers.fluids.FluidHandler;
+import pl.pzmod.data.containers.items.ItemHandler;
 
-import java.util.function.BiPredicate;
+public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, IFluidHolder<ItemStack>, IItemHolder<ItemStack> {
+    private EnergyHandler energyHandler;
+    private FluidHandler fluidHandler;
+    private ItemHandler itemHandler;
 
-public abstract class PZItem extends Item implements IEnergyHolder, IFluidHolder, IItemHolder {
     protected PZItem(Properties properties) {
         super(properties);
     }
 
-    @Override
-    public int getEnergyCapacity() {
-        return 0;
+    protected @Nullable EnergyHandler getInitialEnergyHandler(@NotNull ItemStack stack) {
+        return null;
     }
 
     @Override
-    public int getEnergyMaxTransfer() {
-        return 0;
+    public final @Nullable EnergyHandler getEnergyHandler(@NotNull ItemStack stack) {
+        if (energyHandler == null) {
+            energyHandler = getInitialEnergyHandler(stack);
+        }
+        return energyHandler;
     }
 
     @Override
-    public int getTankCount() {
-        return 0;
+    public boolean canHandleEnergy() {
+        return false;
+    }
+
+    protected @Nullable FluidHandler getInitialFluidHandler(@NotNull ItemStack stack) {
+        return null;
     }
 
     @Override
-    public int getTankCapacity() {
-        return 0;
+    public final @Nullable FluidHandler getFluidHandler(@NotNull ItemStack stack) {
+        if (fluidHandler == null) {
+            fluidHandler = getInitialFluidHandler(stack);
+        }
+        return fluidHandler;
     }
 
     @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return (slot, stack) -> false;
+    public boolean canHandleFluids() {
+        return false;
+    }
+
+    protected @Nullable ItemHandler getInitialItemHandler(@NotNull ItemStack stack) {
+        return null;
     }
 
     @Override
-    public int getSlotCount() {
-        return 0;
+    public final @Nullable ItemHandler getItemHandler(@NotNull ItemStack stack) {
+        if (itemHandler == null) {
+            itemHandler = getInitialItemHandler(stack);
+        }
+        return itemHandler;
     }
 
     @Override
-    public int getSlotLimit() {
-        return 0;
-    }
-
-    public @Nullable IEnergyStorage getEnergyStorage(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.EnergyStorage.ITEM);
-    }
-
-    public @Nullable IFluidHandler getFluidHandler(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.FluidHandler.ITEM);
-    }
-
-    public @Nullable IItemHandler getItemHandler(@NotNull ItemStack stack) {
-        return stack.getCapability(Capabilities.ItemHandler.ITEM);
+    public boolean canHandleItems() {
+        return false;
     }
 }

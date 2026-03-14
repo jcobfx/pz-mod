@@ -29,40 +29,44 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.BiPredicate;
+import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.capabilities.ContainerHandlerHelper;
+import pl.pzmod.capabilities.fluids.FluidContainerConfig;
+import pl.pzmod.data.containers.IContainerHolder;
+import pl.pzmod.data.containers.fluids.FluidHandler;
+import pl.pzmod.utils.ConstantPredicates;
 
 public class BigBucketItem extends PZItem {
+    private static final int CAPACITY = 2000;
+    private static final int RATE = 1000;
+
     public BigBucketItem(Properties properties) {
         super(properties);
     }
 
     @Override
-    public int getTankCount() {
-        return 1;
+    protected @Nullable FluidHandler getInitialFluidHandler(@NotNull ItemStack stack) {
+        return ContainerHandlerHelper.builder(new FluidHandler(), IContainerHolder.from(stack, 1))
+                .addContainer(FluidContainerConfig.inout(ConstantPredicates.alwaysTrue(), () -> CAPACITY, () -> RATE))
+                .build();
     }
 
     @Override
-    public int getTankCapacity() {
-        return 2000;
-    }
-
-    @Override
-    public BiPredicate<Integer, @NotNull FluidStack> getFluidValidator() {
-        return (tank, stack) -> true;
+    public boolean canHandleFluids() {
+        return true;
     }
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         ItemStack bigBucket = player.getItemInHand(usedHand);
-        IFluidHandler fluidTank = getFluidHandler(bigBucket);
+        IFluidHandler fluidTank = Capabilities.FLUID.getCapability(bigBucket);
         if (fluidTank == null) {
             return InteractionResultHolder.pass(bigBucket);
         }
 
         FluidStack fluidInTank = fluidTank.getFluidInTank(0);
         BlockHitResult blockhitresult = getPlayerPOVHitResult(level, player,
-                fluidInTank.getAmount() < this.getTankCapacity() ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
+                fluidInTank.getAmount() < fluidTank.getTankCapacity(0) ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
         if (blockhitresult.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(bigBucket);
         }
@@ -146,14 +150,13 @@ public class BigBucketItem extends PZItem {
 
     @Override
     public boolean isBarVisible(@NotNull ItemStack stack) {
-        return getFluidAmount(stack) < this.getTankCapacity();
+        return getFluidAmount(stack) < CAPACITY;
     }
 
     @Override
     public int getBarWidth(@NotNull ItemStack stack) {
-        int maxCapacity = this.getTankCapacity();
         int fluidAmount = getFluidAmount(stack);
-        return Math.round(fluidAmount * 13.0F / maxCapacity);
+        return Math.round(fluidAmount * 13.0F / CAPACITY);
     }
 
     @Override
@@ -162,7 +165,7 @@ public class BigBucketItem extends PZItem {
     }
 
     private int getFluidAmount(@NotNull ItemStack stack) {
-        IFluidHandler fluidTank = getFluidHandler(stack);
+        IFluidHandler fluidTank = Capabilities.FLUID.getCapability(stack);
         if (fluidTank != null) {
             return fluidTank.getFluidInTank(0).getAmount();
         }

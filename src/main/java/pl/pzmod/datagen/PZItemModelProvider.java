@@ -13,7 +13,7 @@ public class PZItemModelProvider extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        basicItem(PZItems.BACKPACK.get());
+//        basicItem(PZItems.BACKPACK.get());
         basicItem(PZItems.BIG_BUCKET.get());
     }
 }

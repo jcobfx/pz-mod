@@ -5,13 +5,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
-import pl.pzmod.capabilities.energy.BlockEntityEnergyCapabilityResolver;
-import pl.pzmod.capabilities.item.GeneratorBlockItemCapabilityResolver;
+import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.capabilities.energy.EnergyCapabilityResolver;
+import pl.pzmod.capabilities.items.ItemCapabilityResolver;
 
 import java.util.function.Supplier;
 
@@ -31,14 +31,14 @@ public class PZBlockEntities {
     @SubscribeEvent
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                Capabilities.EnergyStorage.BLOCK,
+                Capabilities.ENERGY.block(),
                 GENERATOR.get(),
-                BlockEntityEnergyCapabilityResolver::new
+                EnergyCapabilityResolver::forBlockEntity
         );
         event.registerBlockEntity(
-                Capabilities.ItemHandler.BLOCK,
+                Capabilities.ITEM.block(),
                 GENERATOR.get(),
-                GeneratorBlockItemCapabilityResolver::new
+                ItemCapabilityResolver::forBlockEntity
         );
     }
 

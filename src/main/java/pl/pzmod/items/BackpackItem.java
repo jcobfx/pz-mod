@@ -7,6 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.capabilities.ContainerHandlerHelper;
+import pl.pzmod.capabilities.items.ItemContainerConfig;
+import pl.pzmod.data.containers.IContainerHolder;
+import pl.pzmod.data.containers.items.ItemHandler;
+import pl.pzmod.utils.ConstantPredicates;
 
 public class BackpackItem extends PZItem {
     public BackpackItem(Properties properties) {
@@ -14,13 +21,15 @@ public class BackpackItem extends PZItem {
     }
 
     @Override
-    public int getSlotCount() {
-        return 1;
+    protected @Nullable ItemHandler getInitialItemHandler(@NotNull ItemStack stack) {
+        return ContainerHandlerHelper.builder(new ItemHandler(), IContainerHolder.from(stack, 1))
+                .addContainer(ItemContainerConfig.inout(ConstantPredicates.alwaysTrue(), () -> 2))
+                .build();
     }
 
     @Override
-    public int getSlotLimit() {
-        return 100;
+    public boolean canHandleItems() {
+        return true;
     }
 
     @Override
@@ -29,7 +38,7 @@ public class BackpackItem extends PZItem {
                                                            @NotNull InteractionHand usedHand) {
         ItemStack backpack = player.getItemInHand(usedHand);
         if (usedHand == InteractionHand.MAIN_HAND) {
-            IItemHandler inventory = getItemHandler(backpack);
+            IItemHandler inventory = Capabilities.ITEM.getCapability(backpack);
             if (inventory != null) {
                 ItemStack offhandItem = player.getOffhandItem();
                 ItemStack packedItem = inventory.getStackInSlot(0);

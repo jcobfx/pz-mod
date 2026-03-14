@@ -27,7 +27,7 @@ public class GeneratorMenu extends AbstractContainerMenu {
                 new ItemStackHandler(1),
                 Objects.requireNonNull(playerInventory.player.level()
                         .getCapability(Capabilities.EnergyStorage.BLOCK, extraData.readBlockPos(), null)),
-                new SimpleContainerData(4),
+                new SimpleContainerData(2),
                 ContainerLevelAccess.NULL);
     }
 

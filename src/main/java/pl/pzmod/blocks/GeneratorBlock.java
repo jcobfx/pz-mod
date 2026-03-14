@@ -17,15 +17,20 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
 import pl.pzmod.items.BatteryItem;
+import pl.pzmod.registries.PZAttachments;
 import pl.pzmod.registries.PZBlockEntities;
 
 public class GeneratorBlock extends PZBlock implements EntityBlock {
     private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
+
+    public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
     @SuppressWarnings("unchecked")
     private static <E extends BlockEntity, A extends BlockEntity> @Nullable BlockEntityTicker<A> createTickerHelper(
@@ -38,7 +43,7 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
 
     public GeneratorBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(HorizontalDirectionalBlock.FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
@@ -89,16 +94,11 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
     @Override
     public void onRemove(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide && state.getBlock() != newState.getBlock()) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof GeneratorBlockEntity generatorEntity) {
-                var inventory = generatorEntity.getItemHandler(pos, state,null);
-                if (inventory != null) {
-                    NonNullList<ItemStack> stored = NonNullList.withSize(inventory.getSlots(), ItemStack.EMPTY);
-                    for (int i = 0; i < inventory.getSlots(); i++) {
-                        stored.set(i, inventory.getStackInSlot(i));
-                    }
-                    Containers.dropContents(level, pos, stored);
-                }
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity instanceof GeneratorBlockEntity generatorEntity) {
+                var inventory = generatorEntity.getData(PZAttachments.ITEMS_ATTACHMENT);
+                NonNullList<ItemStack> stored = NonNullList.copyOf(inventory.contents());
+                Containers.dropContents(level, pos, stored);
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
@@ -106,11 +106,11 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(HorizontalDirectionalBlock.FACING);
+        builder.add(FACING);
     }
 }

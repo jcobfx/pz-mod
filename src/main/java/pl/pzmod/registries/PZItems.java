@@ -8,12 +8,13 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
-import pl.pzmod.capabilities.energy.ItemStackEnergyCapabilityResolver;
-import pl.pzmod.capabilities.fluid.ItemStackFluidCapabilityResolver;
-import pl.pzmod.capabilities.item.ItemStackItemCapabilityResolver;
+import pl.pzmod.capabilities.energy.EnergyCapabilityResolver;
+import pl.pzmod.capabilities.fluids.FluidCapabilityResolver;
+import pl.pzmod.capabilities.items.ItemCapabilityResolver;
 import pl.pzmod.items.BackpackItem;
 import pl.pzmod.items.BatteryItem;
 import pl.pzmod.items.BigBucketItem;
+import pl.pzmod.items.PZItem;
 
 @EventBusSubscriber(modid = PZMod.MODID)
 public class PZItems {
@@ -33,19 +34,19 @@ public class PZItems {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerItem(
                 Capabilities.EnergyStorage.ITEM,
-                ItemStackEnergyCapabilityResolver::new,
+                (stack, ctx) -> EnergyCapabilityResolver.forItem(stack, (PZItem) stack.getItem()),
                 BATTERY
         );
 
         event.registerItem(
                 Capabilities.ItemHandler.ITEM,
-                ItemStackItemCapabilityResolver::new,
+                (stack, ctx) -> ItemCapabilityResolver.forItem(stack, (PZItem) stack.getItem()),
                 BACKPACK
         );
 
         event.registerItem(
                 Capabilities.FluidHandler.ITEM,
-                ItemStackFluidCapabilityResolver::new,
+                (stack, ctx) -> FluidCapabilityResolver.forItem(stack, (PZItem) stack.getItem()),
                 BIG_BUCKET
         );
     }
