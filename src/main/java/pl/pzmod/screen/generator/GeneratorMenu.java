@@ -5,12 +5,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
+import pl.pzmod.capabilities.Capabilities;
 import pl.pzmod.registries.PZBlocks;
 import pl.pzmod.registries.PZMenuTypes;
 
@@ -25,8 +25,8 @@ public class GeneratorMenu extends AbstractContainerMenu {
         this(containerId,
                 playerInventory,
                 new ItemStackHandler(1),
-                Objects.requireNonNull(playerInventory.player.level()
-                        .getCapability(Capabilities.EnergyStorage.BLOCK, extraData.readBlockPos(), null)),
+                Objects.requireNonNull(Capabilities.ENERGY
+                        .getCapability(playerInventory.player.level(), extraData.readBlockPos(), null)),
                 new SimpleContainerData(2),
                 ContainerLevelAccess.NULL);
     }

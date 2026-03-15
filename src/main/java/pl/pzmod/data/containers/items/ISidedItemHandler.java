@@ -85,8 +85,8 @@ public interface ISidedItemHandler extends IItemHandlerModifiable {
     }
 
     @Override
-    default int getSlotLimit(int i) {
-        return getSlotLimit(getSlots(), getDefaultSide());
+    default int getSlotLimit(int slot) {
+        return getSlotLimit(slot, getDefaultSide());
     }
 
     @Override

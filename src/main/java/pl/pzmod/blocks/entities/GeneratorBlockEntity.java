@@ -34,27 +34,27 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
 
     public static void tick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         if (level.isClientSide()) return;
-        var energyStorage = Capabilities.ENERGY.getCapability(level, pos, state, be, null);
-        var inventory = Capabilities.ITEM.getCapability(level, pos, state, be, null);
-        if (energyStorage == null || inventory == null) {
+        var energyCap = Capabilities.ENERGY.getCapability(level, pos, state, be, null);
+        var itemCap = Capabilities.ITEM.getCapability(level, pos, state, be, null);
+        if (energyCap == null || itemCap == null) {
             return;
         }
 
         boolean changed = false;
         if (be.burnTime > 0) {
             be.burnTime--;
-            energyStorage.receiveEnergy(ENERGY_PER_TICK, false);
+            energyCap.receiveEnergy(ENERGY_PER_TICK, false);
             changed = true;
         }
 
-        if (be.burnTime <= 0 && energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
-            ItemStack fuelStack = inventory.getStackInSlot(0);
+        if (be.burnTime <= 0 && energyCap.getEnergyStored() < energyCap.getMaxEnergyStored()) {
+            ItemStack fuelStack = itemCap.getStackInSlot(0);
             if (!fuelStack.isEmpty()) {
                 int burnTicks = fuelStack.getBurnTime(RecipeType.SMELTING);
                 if (burnTicks > 0) {
                     be.burnTime = burnTicks;
                     be.burnTimeTotal = burnTicks;
-                    inventory.extractItem(0, 1, false);
+                    itemCap.extractItem(0, 1, false);
                     changed = true;
                 }
             }

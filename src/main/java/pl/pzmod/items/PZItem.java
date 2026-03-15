@@ -12,10 +12,6 @@ import pl.pzmod.data.containers.fluids.FluidHandler;
 import pl.pzmod.data.containers.items.ItemHandler;
 
 public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, IFluidHolder<ItemStack>, IItemHolder<ItemStack> {
-    private EnergyHandler energyHandler;
-    private FluidHandler fluidHandler;
-    private ItemHandler itemHandler;
-
     protected PZItem(Properties properties) {
         super(properties);
     }
@@ -26,10 +22,7 @@ public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, I
 
     @Override
     public final @Nullable EnergyHandler getEnergyHandler(@NotNull ItemStack stack) {
-        if (energyHandler == null) {
-            energyHandler = getInitialEnergyHandler(stack);
-        }
-        return energyHandler;
+        return getInitialEnergyHandler(stack);
     }
 
     @Override
@@ -43,10 +36,7 @@ public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, I
 
     @Override
     public final @Nullable FluidHandler getFluidHandler(@NotNull ItemStack stack) {
-        if (fluidHandler == null) {
-            fluidHandler = getInitialFluidHandler(stack);
-        }
-        return fluidHandler;
+        return getInitialFluidHandler(stack);
     }
 
     @Override
@@ -60,10 +50,7 @@ public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, I
 
     @Override
     public final @Nullable ItemHandler getItemHandler(@NotNull ItemStack stack) {
-        if (itemHandler == null) {
-            itemHandler = getInitialItemHandler(stack);
-        }
-        return itemHandler;
+        return getInitialItemHandler(stack);
     }
 
     @Override
