@@ -9,10 +9,6 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.ContainerHandlerHelper;
-import pl.pzmod.capabilities.items.ItemContainerConfig;
-import pl.pzmod.data.containers.IContainerHolder;
-import pl.pzmod.data.containers.items.ItemHandler;
 import pl.pzmod.utils.ConstantPredicates;
 
 public class BackpackItem extends PZItem {

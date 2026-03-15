@@ -13,26 +13,26 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.ContainerHandlerHelper;
-import pl.pzmod.capabilities.energy.EnergyContainerConfig;
-import pl.pzmod.capabilities.items.ItemContainerConfig;
-import pl.pzmod.data.containers.IContainerHolder;
-import pl.pzmod.data.containers.energy.EnergyHandler;
-import pl.pzmod.data.containers.items.ItemHandler;
-import pl.pzmod.registries.PZBlockEntities;
-import pl.pzmod.screen.generator.GeneratorMenu;
+import pl.pzmod.capabilities.energy.AttachmentBackedEnergy;
+import pl.pzmod.capabilities.holder.energy.EnergyContainerHelper;
+import pl.pzmod.capabilities.holder.energy.IEnergyHolder;
+import pl.pzmod.capabilities.holder.item.IItemHolder;
+import pl.pzmod.capabilities.holder.item.ItemContainerHelper;
+import pl.pzmod.capabilities.item.AttachmentBackedItems;
+import pl.pzmod.data.containers.IAttachmentHolder;
+import pl.pzmod.menus.generator.GeneratorMenu;
+import pl.pzmod.registries.PZBlocks;
 
 import java.util.Objects;
 
 public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider {
     private static final int ENERGY_PER_TICK = 20;
 
-    public static void tick(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
+    public static void tickServer(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
         if (level.isClientSide()) return;
         var energyCap = Capabilities.ENERGY.getCapability(level, pos, state, be, null);
         var itemCap = Capabilities.ITEM.getCapability(level, pos, state, be, null);
@@ -71,7 +71,7 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
     private int burnTimeTotal = 0;
 
     public GeneratorBlockEntity(BlockPos pos, BlockState blockState) {
-        super(PZBlockEntities.GENERATOR.get(), pos, blockState);
+        super(PZBlocks.GENERATOR, pos, blockState);
         this.data = new ContainerData() {
             @Override
             public int get(int index) {
@@ -101,27 +101,17 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
     }
 
     @Override
-    public @NotNull EnergyHandler getInitialEnergyHandler(@NotNull BlockEntity blockEntity) {
-        return ContainerHandlerHelper.builder(new EnergyHandler(this::getFacing), IContainerHolder.from(blockEntity, 1))
-                .addContainer(EnergyContainerConfig.output(() -> 100_000, () -> 1000))
-                .build();
+    public @NotNull IEnergyHolder getInitialEnergyHolder() {
+        var builder = EnergyContainerHelper.forSide(this::getFacing, IAttachmentHolder.from(this, 1));
+        builder.addContainer(AttachmentBackedEnergy.output(() -> 100_000, () -> 1000));
+        return builder.build();
     }
 
     @Override
-    public boolean canHandleEnergy() {
-        return true;
-    }
-
-    @Override
-    public @NotNull ItemHandler getInitialItemHandler(@NotNull BlockEntity blockEntity) {
-        return ContainerHandlerHelper.builder(new ItemHandler(this::getFacing), IContainerHolder.from(blockEntity, 1))
-                .addContainer(ItemContainerConfig.input(stack -> stack.getBurnTime(RecipeType.SMELTING) > 0, () -> 100))
-                .build();
-    }
-
-    @Override
-    public boolean canHandleItems() {
-        return true;
+    public @NotNull IItemHolder getInitialItemHolder() {
+        var builder = ItemContainerHelper.forSide(this::getFacing, IAttachmentHolder.from(this, 1));
+        builder.addContainer(AttachmentBackedItems.input(stack -> stack.getBurnTime(RecipeType.SMELTING) > 0, () -> 100));
+        return builder.build();
     }
 
     @Override

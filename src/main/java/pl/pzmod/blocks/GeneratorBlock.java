@@ -13,37 +13,24 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
 import pl.pzmod.items.BatteryItem;
+import pl.pzmod.registration.BlockEntityTypeRegistryObject;
 import pl.pzmod.registries.PZAttachments;
 import pl.pzmod.registries.PZBlockEntities;
 
-public class GeneratorBlock extends PZBlock implements EntityBlock {
+public class GeneratorBlock extends PZBlock implements IEntityBlock<GeneratorBlockEntity> {
     private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
-
-    public static final DirectionProperty FACING = BlockStateProperties.FACING;
-
-    @SuppressWarnings("unchecked")
-    private static <E extends BlockEntity, A extends BlockEntity> @Nullable BlockEntityTicker<A> createTickerHelper(
-            BlockEntityType<A> serverType,
-            BlockEntityType<E> clientType,
-            BlockEntityTicker<? super E> ticker
-    ) {
-        return clientType == serverType ? (BlockEntityTicker<A>) ticker : null;
-    }
 
     public GeneratorBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.FACING, Direction.NORTH));
     }
 
     @Override
@@ -52,20 +39,23 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
-        return new GeneratorBlockEntity(blockPos, blockState);
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(BlockStateProperties.FACING, context.getHorizontalDirection().getOpposite());
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(BlockStateProperties.FACING);
+    }
+
+    @Override
+    public @NotNull BlockEntityTypeRegistryObject<? extends GeneratorBlockEntity> getBlockEntityType() {
+        return PZBlockEntities.GENERATOR;
     }
 
     @Override
     protected @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
         return RenderShape.MODEL;
-    }
-
-    @Override
-    public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level,
-                                                                            @NotNull BlockState state,
-                                                                            @NotNull BlockEntityType<T> type) {
-        return createTickerHelper(type, PZBlockEntities.GENERATOR.get(), GeneratorBlockEntity::tick);
     }
 
     @Override
@@ -102,15 +92,5 @@ public class GeneratorBlock extends PZBlock implements EntityBlock {
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    @Override
-    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
     }
 }

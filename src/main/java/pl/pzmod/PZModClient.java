@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import pl.pzmod.registries.PZMenuTypes;
-import pl.pzmod.screen.generator.GeneratorScreen;
+import pl.pzmod.menus.generator.GeneratorScreen;
 
 @Mod(value = PZMod.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = PZMod.MODID, value = Dist.CLIENT)

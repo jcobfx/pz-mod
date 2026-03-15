@@ -1,17 +1,34 @@
 package pl.pzmod.items;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pl.pzmod.capabilities.energy.IEnergyHolder;
-import pl.pzmod.capabilities.fluids.IFluidHolder;
-import pl.pzmod.capabilities.items.IItemHolder;
-import pl.pzmod.data.containers.energy.EnergyHandler;
-import pl.pzmod.data.containers.fluids.FluidHandler;
-import pl.pzmod.data.containers.items.ItemHandler;
+import pl.pzmod.capabilities.energy.IEnergyContainer;
+import pl.pzmod.data.containers.energy.IPZEnergyHandler;
+import pl.pzmod.capabilities.fluid.IFluidContainer;
+import pl.pzmod.data.containers.fluids.IPZFluidHandler;
+import pl.pzmod.capabilities.item.IItemContainer;
+import pl.pzmod.data.containers.items.IPZItemHandler;
 
-public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, IFluidHolder<ItemStack>, IItemHolder<ItemStack> {
+import java.util.List;
+
+public abstract class PZItem extends Item implements IPZEnergyHandler, IPZFluidHandler, IPZItemHandler {
+    public static final ICapabilityProvider<ItemStack, Void, IEnergyStorage> ENERGY_HANDLER_PROVIDER;
+    public static final ICapabilityProvider<ItemStack, Void, IFluidHandlerItem> FLUID_HANDLER_PROVIDER;
+    public static final ICapabilityProvider<ItemStack, Void, IItemHandler> ITEM_HANDLER_PROVIDER;
+
+    static {
+        ENERGY_HANDLER_PROVIDER = null;
+        FLUID_HANDLER_PROVIDER = null;
+        ITEM_HANDLER_PROVIDER = null;
+    }
+
     protected PZItem(Properties properties) {
         super(properties);
     }
@@ -20,28 +37,8 @@ public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, I
         return null;
     }
 
-    @Override
-    public final @Nullable EnergyHandler getEnergyHandler(@NotNull ItemStack stack) {
-        return getInitialEnergyHandler(stack);
-    }
-
-    @Override
-    public boolean canHandleEnergy() {
-        return false;
-    }
-
     protected @Nullable FluidHandler getInitialFluidHandler(@NotNull ItemStack stack) {
         return null;
-    }
-
-    @Override
-    public final @Nullable FluidHandler getFluidHandler(@NotNull ItemStack stack) {
-        return getInitialFluidHandler(stack);
-    }
-
-    @Override
-    public boolean canHandleFluids() {
-        return false;
     }
 
     protected @Nullable ItemHandler getInitialItemHandler(@NotNull ItemStack stack) {
@@ -49,12 +46,32 @@ public abstract class PZItem extends Item implements IEnergyHolder<ItemStack>, I
     }
 
     @Override
-    public final @Nullable ItemHandler getItemHandler(@NotNull ItemStack stack) {
-        return getInitialItemHandler(stack);
+    public @NotNull List<IEnergyContainer> getEnergyContainers(@Nullable Direction side) {
+        return List.of();
     }
 
     @Override
-    public boolean canHandleItems() {
+    public boolean hasEnergyContainers() {
+        return false;
+    }
+
+    @Override
+    public @NotNull List<IFluidContainer> getFluidContainers(@Nullable Direction side) {
+        return List.of();
+    }
+
+    @Override
+    public boolean hasFluidContainers() {
+        return false;
+    }
+
+    @Override
+    public @NotNull List<IItemContainer> getItemContainers(@Nullable Direction side) {
+        return List.of();
+    }
+
+    @Override
+    public boolean hasItemContainers() {
         return false;
     }
 }

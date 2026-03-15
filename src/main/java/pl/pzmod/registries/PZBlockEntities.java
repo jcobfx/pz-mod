@@ -1,45 +1,26 @@
 package pl.pzmod.registries;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
+import pl.pzmod.blocks.entities.CapabilityBlockEntity;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
+import pl.pzmod.blocks.entities.PZBlockEntity;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.energy.EnergyCapabilityResolver;
-import pl.pzmod.capabilities.items.ItemCapabilityResolver;
+import pl.pzmod.registration.BlockEntityTypeDeferredRegister;
+import pl.pzmod.registration.BlockEntityTypeRegistryObject;
 
-import java.util.function.Supplier;
-
-@EventBusSubscriber(modid = PZMod.MODID)
 public class PZBlockEntities {
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
-            DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, PZMod.MODID);
+    private static final BlockEntityTypeDeferredRegister BLOCK_ENTITIES = new BlockEntityTypeDeferredRegister(PZMod.MODID);
 
-    public static final Supplier<BlockEntityType<GeneratorBlockEntity>> GENERATOR =
-            BLOCK_ENTITIES.register("generator", () -> BlockEntityType.Builder.of(
-                    GeneratorBlockEntity::new, PZBlocks.GENERATOR.get()).build(null));
+    public static final BlockEntityTypeRegistryObject<GeneratorBlockEntity> GENERATOR =
+            BLOCK_ENTITIES.builder(PZBlocks.GENERATOR, GeneratorBlockEntity::new)
+                    .with(Capabilities.ENERGY.block(), CapabilityBlockEntity.ENERGY_HANDLER_PROVIDER)
+                    .with(Capabilities.ITEM.block(), CapabilityBlockEntity.ITEM_HANDLER_PROVIDER)
+                    .serverTicker(GeneratorBlockEntity::tickServer)
+                    .build();
 
     public static void register(IEventBus bus) {
         BLOCK_ENTITIES.register(bus);
-    }
-
-    @SubscribeEvent
-    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(
-                Capabilities.ENERGY.block(),
-                GENERATOR.get(),
-                EnergyCapabilityResolver::forBlockEntity
-        );
-        event.registerBlockEntity(
-                Capabilities.ITEM.block(),
-                GENERATOR.get(),
-                ItemCapabilityResolver::forBlockEntity
-        );
     }
 
     private PZBlockEntities() {

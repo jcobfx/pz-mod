@@ -1,33 +1,34 @@
 package pl.pzmod.data.containers.energy;
 
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.data.containers.Action;
 
-public interface ISidedEnergyHandler extends IEnergyStorage {
+public interface ISidedEnergyHandler extends IEnergyHandler {
     int getStorages(@Nullable Direction side);
+
+    void setEnergy(int storage, int energy, @Nullable Direction side);
 
     /**
      *
      * @param storage index of storage
      * @param energy  amount of energy to insert
-     * @param side    side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
      * @param action  action to perform
+     * @param side    side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
      * @return amount of energy that could not be inserted
      */
-    int insertEnergy(int storage, int energy, @Nullable Direction side, @NotNull Action action);
+    int insertEnergy(int storage, int energy, @NotNull Action action, @Nullable Direction side);
 
     /**
      *
      * @param storage index of storage
      * @param energy  amount of energy to extract
-     * @param side    side from which the extraction is performed, or null if it is performed internally (e.g. by a machine's GUI)
      * @param action  action to perform
+     * @param side    side from which the extraction is performed, or null if it is performed internally (e.g. by a machine's GUI)
      * @return amount of extracted energy
      */
-    int extractEnergy(int storage, int energy, @Nullable Direction side, @NotNull Action action);
+    int extractEnergy(int storage, int energy, @NotNull Action action, @Nullable Direction side);
 
     int getEnergy(int storage, @Nullable Direction side);
 
@@ -37,49 +38,47 @@ public interface ISidedEnergyHandler extends IEnergyStorage {
 
     boolean canExtract(int storage, @Nullable Direction side);
 
-    default @Nullable Direction getDefaultSide() {
+    default @Nullable Direction getEnergyHandlerSideFor() {
         return null;
     }
 
-    /**
-     *
-     * @param energy   amount of energy to receive
-     * @param simulate if true, the insertion is only simulated and no changes should be made to the container
-     * @return amount of received energy
-     */
     @Override
-    default int receiveEnergy(int energy, boolean simulate) {
-        return energy - insertEnergy(0, energy, getDefaultSide(), Action.get(!simulate));
-    }
-
-    /**
-     *
-     * @param energy   amount of energy to extract
-     * @param simulate if true, the insertion is only simulated and no changes should be made to the container
-     * @return amount of extracted energy
-     */
-    @Override
-    default int extractEnergy(int energy, boolean simulate) {
-        return extractEnergy(0, energy, getDefaultSide(), Action.get(!simulate));
+    default int getStorages() {
+        return getStorages(getEnergyHandlerSideFor());
     }
 
     @Override
-    default int getEnergyStored() {
-        return getEnergy(0, null);
+    default void setEnergy(int storage, int energy) {
+        setEnergy(storage, energy, getEnergyHandlerSideFor());
     }
 
     @Override
-    default int getMaxEnergyStored() {
-        return getEnergyCapacity(0, null);
+    default int insertEnergy(int storage, int energy, @NotNull Action action) {
+        return insertEnergy(storage, energy, action, getEnergyHandlerSideFor());
     }
 
     @Override
-    default boolean canExtract() {
-        return canExtract(0, null);
+    default int extractEnergy(int storage, int energy, @NotNull Action action) {
+        return extractEnergy(storage, energy, action, getEnergyHandlerSideFor());
     }
 
     @Override
-    default boolean canReceive() {
-        return canInsert(0, null);
+    default int getEnergy(int storage) {
+        return getEnergy(storage, getEnergyHandlerSideFor());
+    }
+
+    @Override
+    default int getEnergyCapacity(int storage) {
+        return getEnergyCapacity(storage, getEnergyHandlerSideFor());
+    }
+
+    @Override
+    default boolean canInsert(int storage) {
+        return canInsert(storage, getEnergyHandlerSideFor());
+    }
+
+    @Override
+    default boolean canExtract(int storage) {
+        return canExtract(storage, getEnergyHandlerSideFor());
     }
 }

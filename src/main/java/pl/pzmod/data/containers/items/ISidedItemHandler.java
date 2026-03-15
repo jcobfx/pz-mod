@@ -8,56 +8,66 @@ import org.jetbrains.annotations.Nullable;
 import pl.pzmod.data.containers.Action;
 
 public interface ISidedItemHandler extends IItemHandlerModifiable {
-    void setStackInSlot(int slot, @NotNull ItemStack stack, @Nullable Direction side);
-
     int getSlots(@Nullable Direction side);
 
     @NotNull
     ItemStack getStackInSlot(int slot, @Nullable Direction side);
 
-    /**
-     *
-     * @param slot   index of slot
-     * @param stack  items to insert
-     * @param side   side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
-     * @param action action to perform
-     * @return items that could not be inserted
-     */
-    @NotNull
-    ItemStack insertItem(int slot, @NotNull ItemStack stack, @Nullable Direction side, @NotNull Action action);
-
-    /**
-     *
-     * @param slot   index of slot
-     * @param amount amount to extract
-     * @param side   side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
-     * @param action action to perform
-     * @return extracted items
-     */
-    @NotNull
-    ItemStack extractItem(int slot, int amount, @Nullable Direction side, @NotNull Action action);
+    void setStackInSlot(int slot, @NotNull ItemStack stack, @Nullable Direction side);
 
     int getSlotLimit(int slot, @Nullable Direction side);
 
     boolean isItemValid(int slot, @NotNull ItemStack stack, @Nullable Direction side);
 
-    default @Nullable Direction getDefaultSide() {
+    /**
+     *
+     * @param slot   index of slot
+     * @param stack  items to insert
+     * @param action action to perform
+     * @param side   side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
+     * @return items that could not be inserted
+     */
+    @NotNull
+    ItemStack insertItem(int slot, @NotNull ItemStack stack, @NotNull Action action, @Nullable Direction side);
+
+    /**
+     *
+     * @param slot   index of slot
+     * @param amount amount to extract
+     * @param action action to perform
+     * @param side   side from which the insertion is performed, or null if it is performed internally (e.g. by a machine's GUI)
+     * @return extracted items
+     */
+    @NotNull
+    ItemStack extractItem(int slot, int amount, @NotNull Action action, @Nullable Direction side);
+
+    default @Nullable Direction getItemHandlerSideFor() {
         return null;
     }
 
     @Override
-    default void setStackInSlot(int slot, @NotNull ItemStack stack) {
-        setStackInSlot(slot, stack, getDefaultSide());
-    }
-
-    @Override
     default int getSlots() {
-        return getSlots(getDefaultSide());
+        return getSlots(getItemHandlerSideFor());
     }
 
     @Override
     default @NotNull ItemStack getStackInSlot(int slot) {
-        return getStackInSlot(slot, getDefaultSide());
+        return getStackInSlot(slot, getItemHandlerSideFor());
+    }
+
+    @Override
+    default void setStackInSlot(int slot, @NotNull ItemStack stack) {
+        setStackInSlot(slot, stack, getItemHandlerSideFor());
+    }
+
+    @Override
+    default int getSlotLimit(int slot) {
+        return getSlotLimit(slot, getItemHandlerSideFor());
+    }
+
+    @Override
+    default boolean isItemValid(int slot, @NotNull ItemStack stack) {
+        return isItemValid(slot, stack, getItemHandlerSideFor());
     }
 
     /**
@@ -69,7 +79,7 @@ public interface ISidedItemHandler extends IItemHandlerModifiable {
      */
     @Override
     default @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        return insertItem(slot, stack, getDefaultSide(), Action.get(!simulate));
+        return insertItem(slot, stack, Action.get(!simulate), getItemHandlerSideFor());
     }
 
     /**
@@ -81,16 +91,6 @@ public interface ISidedItemHandler extends IItemHandlerModifiable {
      */
     @Override
     default @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return extractItem(slot, amount, getDefaultSide(), Action.get(!simulate));
-    }
-
-    @Override
-    default int getSlotLimit(int slot) {
-        return getSlotLimit(slot, getDefaultSide());
-    }
-
-    @Override
-    default boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return isItemValid(slot, stack, getDefaultSide());
+        return extractItem(slot, amount, Action.get(!simulate), getItemHandlerSideFor());
     }
 }

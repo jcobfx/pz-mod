@@ -17,10 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.PZMod;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.ContainerHandlerHelper;
-import pl.pzmod.capabilities.energy.EnergyContainerConfig;
-import pl.pzmod.data.containers.IContainerHolder;
-import pl.pzmod.data.containers.energy.EnergyHandler;
 
 public class BatteryItem extends PZItem {
     private static final int CAPACITY = 10000;
