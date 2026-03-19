@@ -44,7 +44,7 @@ flowchart TB
         end
     end
 
-    subgraph pl.pzmod.data
+    subgraph pl.pzmod.attachments
         SerializerHelper[SerializerHelper]
         SerializationConstants[SerializationConstants]
 

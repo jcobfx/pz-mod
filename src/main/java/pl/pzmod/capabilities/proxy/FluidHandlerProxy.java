@@ -4,9 +4,9 @@ import net.minecraft.core.Direction;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pl.pzmod.data.containers.Action;
-import pl.pzmod.data.containers.fluids.IExtendedFluidHandler;
-import pl.pzmod.data.containers.fluids.ISidedFluidHandler;
+import pl.pzmod.capabilities.Action;
+import pl.pzmod.capabilities.fluid.IExtendedFluidHandler;
+import pl.pzmod.capabilities.fluid.ISidedFluidHandler;
 
 public class FluidHandlerProxy implements IExtendedFluidHandler {
     private final ISidedFluidHandler sidedFluidHandler;
@@ -43,27 +43,27 @@ public class FluidHandlerProxy implements IExtendedFluidHandler {
     }
 
     @Override
-    public @NotNull FluidStack insert(int tank, @NotNull FluidStack stack, @NotNull Action action) {
+    public @NotNull FluidStack insertFluid(int tank, @NotNull FluidStack stack, @NotNull Action action) {
         return sidedFluidHandler.insertFluid(tank, stack, action, side);
     }
 
     @Override
-    public @NotNull FluidStack extract(int tank, int amount, @NotNull Action action) {
+    public @NotNull FluidStack extractFluid(int tank, int amount, @NotNull Action action) {
         return sidedFluidHandler.extractFluid(tank, amount, action, side);
     }
 
     @Override
-    public @NotNull FluidStack insert(@NotNull FluidStack stack, @NotNull Action action) {
+    public @NotNull FluidStack insertFluid(@NotNull FluidStack stack, @NotNull Action action) {
         return sidedFluidHandler.insertFluid(stack, action, side);
     }
 
     @Override
-    public @NotNull FluidStack extract(@NotNull FluidStack stack, @NotNull Action action) {
+    public @NotNull FluidStack extractFluid(@NotNull FluidStack stack, @NotNull Action action) {
         return sidedFluidHandler.extractFluid(stack, action, side);
     }
 
     @Override
-    public @NotNull FluidStack extract(int amount, @NotNull Action action) {
+    public @NotNull FluidStack extractFluid(int amount, @NotNull Action action) {
         return sidedFluidHandler.extractFluid(amount, action, side);
     }
 }

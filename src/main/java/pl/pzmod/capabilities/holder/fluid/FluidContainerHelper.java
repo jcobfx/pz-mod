@@ -1,55 +1,82 @@
 package pl.pzmod.capabilities.holder.fluid;
 
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
+import pl.pzmod.attachments.containers.ConstantPredicates;
+import pl.pzmod.attachments.containers.ContainerType;
+import pl.pzmod.attachments.containers.creator.IAttachmentBackedContainerCreator;
+import pl.pzmod.attachments.containers.fluid.AttachedFluids;
+import pl.pzmod.attachments.containers.fluid.AttachmentBackedFluidContainer;
 import pl.pzmod.capabilities.RelativeSide;
 import pl.pzmod.capabilities.fluid.IFluidContainer;
-import pl.pzmod.data.containers.IAttachmentHolder;
-import pl.pzmod.data.containers.fluids.AttachedFluids;
 
-import java.util.function.BiFunction;
+import java.util.function.IntSupplier;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class FluidContainerHelper {
-    private final IMutableFluidHolder containerHolder;
-    private final IAttachmentHolder<AttachedFluids> attachmentHolder;
+    public static FluidContainerHelper forSide(Supplier<Direction> facingSupplier, @NotNull BlockEntity blockEntity) {
+        return new FluidContainerHelper(new FluidHolder(facingSupplier), blockEntity);
+    }
 
-    private int current;
+    private final FluidHolder fluidHolder;
+    private final BlockEntity blockEntity;
+
+    private int currentIndex;
     private boolean built;
 
-    private FluidContainerHelper(IMutableFluidHolder containerHolder, IAttachmentHolder<AttachedFluids> attachmentHolder) {
-        this.containerHolder = containerHolder;
-        this.attachmentHolder = attachmentHolder;
-        this.current = 0;
+    private FluidContainerHelper(FluidHolder fluidHolder, BlockEntity blockEntity) {
+        this.fluidHolder = fluidHolder;
+        this.blockEntity = blockEntity;
+        this.currentIndex = 0;
         this.built = false;
     }
 
-    public static FluidContainerHelper forSide(Supplier<Direction> facingSupplier, IAttachmentHolder<AttachedFluids> attachmentHolder) {
-        return new FluidContainerHelper(new FluidHolder(facingSupplier), attachmentHolder);
-    }
-
-    public <C extends IFluidContainer> C addContainer(BiFunction<IAttachmentHolder<AttachedFluids>, Integer, C> containerFactory) {
-        checkBuilt();
-        var container = containerFactory.apply(attachmentHolder, current++);
-        containerHolder.addFluidContainer(container);
-        return container;
-    }
-
-    public <C extends IFluidContainer> C addContainer(BiFunction<IAttachmentHolder<AttachedFluids>, Integer, C> containerFactory, RelativeSide... sides) {
-        checkBuilt();
-        var container = containerFactory.apply(attachmentHolder, current++);
-        containerHolder.addFluidContainer(container, sides);
-        return container;
-    }
-
     public IFluidHolder build() {
+        checkBuilt();
         built = true;
-        return containerHolder;
+        return fluidHolder;
+    }
+
+    public FluidContainerHelper addBasic(Predicate<@NotNull FluidStack> isValid, int capacity, int rate, RelativeSide... sides) {
+        return addBasic(isValid, () -> capacity, () -> rate, sides);
+    }
+
+    public FluidContainerHelper addBasic(Predicate<@NotNull FluidStack> isValid, IntSupplier capacity, IntSupplier rate, RelativeSide... sides) {
+        return addTank((type, attachedTo, containerIndex, newAttachmentCreator) ->
+                new AttachmentBackedFluidContainer(attachedTo, containerIndex, newAttachmentCreator,
+                        ConstantPredicates.manualOnly(), ConstantPredicates.alwaysTrueBi(), isValid, capacity, rate), sides);
+    }
+
+    public FluidContainerHelper addBasic(int capacity, int rate, RelativeSide... sides) {
+        return addBasic(() -> capacity, () -> rate, sides);
+    }
+
+    public FluidContainerHelper addBasic(IntSupplier capacity, IntSupplier rate, RelativeSide... sides) {
+        return addTank((type, attachedTo, containerIndex, newAttachmentCreator) ->
+                new AttachmentBackedFluidContainer(attachedTo, containerIndex, newAttachmentCreator,
+                        ConstantPredicates.manualOnly(), ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrue(), capacity, rate), sides);
+    }
+
+    public FluidContainerHelper addBasicExtractable(Predicate<@NotNull FluidStack> validator, IntSupplier capacity, IntSupplier rate, RelativeSide... sides) {
+        return addTank((type, attachedTo, containerIndex, newAttachmentCreator) ->
+                new AttachmentBackedFluidContainer(attachedTo, containerIndex, newAttachmentCreator,
+                        ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrueBi(), validator, capacity, rate), sides);
+    }
+
+    public FluidContainerHelper addTank(@NotNull IAttachmentBackedContainerCreator<? extends AttachmentBackedFluidContainer, AttachedFluids> tank,
+                                        RelativeSide... sides) {
+        checkBuilt();
+        var container = tank.create(ContainerType.FLUIDS, blockEntity, currentIndex++, fluidHolder::initAttachedFluids);
+        fluidHolder.addFluidContainer(container, sides);
+        return this;
     }
 
     private void checkBuilt() {
         if (built) {
-            throw new IllegalStateException("Builder has already built.");
+            throw new IllegalStateException("Holder already built.");
         }
     }
 }

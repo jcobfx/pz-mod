@@ -10,13 +10,12 @@ import pl.pzmod.capabilities.item.IItemContainer;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ItemHolder extends ContainerHolder<IItemContainer> implements IMutableItemHolder {
-    ItemHolder(Supplier<Direction> facingSupplier) {
+public class ItemHolder extends ContainerHolder<IItemContainer> implements IItemHolder {
+    public ItemHolder(Supplier<Direction> facingSupplier) {
         super(facingSupplier);
     }
 
-    @Override
-    public void addItemContainer(@NotNull IItemContainer container, RelativeSide... sides) {
+    void addItemContainer(@NotNull IItemContainer container, RelativeSide... sides) {
         addContainerInternal(container, sides);
     }
 

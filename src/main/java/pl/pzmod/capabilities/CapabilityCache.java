@@ -24,7 +24,7 @@ public class CapabilityCache {
         return (ICapabilityResolver<T, Direction>) resolvers.get(capability);
     }
 
-    public <T> void addCapabilityManager(ICapabilityHandlerManager<T> capabilityHandlerManager) {
+    public <T> void addCapabilityManager(ICapabilityHandlerManager<?, T> capabilityHandlerManager) {
         addCapabilityResolver(capabilityHandlerManager.supportedCapability(), capabilityHandlerManager);
     }
 

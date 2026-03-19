@@ -7,9 +7,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import pl.pzmod.attachments.containers.item.ItemContainersBuilder;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.utils.ConstantPredicates;
 
 public class BackpackItem extends PZItem {
     public BackpackItem(Properties properties) {
@@ -17,14 +16,12 @@ public class BackpackItem extends PZItem {
     }
 
     @Override
-    protected @Nullable ItemHandler getInitialItemHandler(@NotNull ItemStack stack) {
-        return ContainerHandlerHelper.builder(new ItemHandler(), IContainerHolder.from(stack, 1))
-                .addContainer(ItemContainerConfig.inout(ConstantPredicates.alwaysTrue(), () -> 2))
-                .build();
+    protected @NotNull ItemContainersBuilder addDefaultItemContainers(@NotNull ItemContainersBuilder builder) {
+        return builder.addBasic(1);
     }
 
     @Override
-    public boolean canHandleItems() {
+    public boolean hasItemContainers() {
         return true;
     }
 

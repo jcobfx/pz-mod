@@ -10,13 +10,12 @@ import pl.pzmod.capabilities.holder.ContainerHolder;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class EnergyHolder extends ContainerHolder<IEnergyContainer> implements IMutableEnergyHolder {
-    EnergyHolder(Supplier<Direction> facingSupplier) {
+public class EnergyHolder extends ContainerHolder<IEnergyContainer> implements IEnergyHolder {
+    public EnergyHolder(Supplier<Direction> facingSupplier) {
         super(facingSupplier);
     }
 
-    @Override
-    public void addEnergyContainer(@NotNull IEnergyContainer container, RelativeSide... sides) {
+    void addEnergyContainer(IEnergyContainer container, RelativeSide... sides) {
         addContainerInternal(container, sides);
     }
 

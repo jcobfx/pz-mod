@@ -1,24 +1,22 @@
 package pl.pzmod.capabilities.energy;
 
 import org.jetbrains.annotations.NotNull;
-import pl.pzmod.data.containers.Action;
-import pl.pzmod.data.containers.AutomationType;
+import pl.pzmod.capabilities.Action;
+import pl.pzmod.capabilities.AutomationType;
 
 public interface IEnergyContainer {
-    int getRate();
-
-    int getCapacity();
+    int getMaxEnergy();
 
     int getEnergy();
 
     void setEnergy(int energy);
 
-    boolean canInsert(@NotNull AutomationType automationType);
-
-    boolean canExtract(@NotNull AutomationType automationType);
-
     default int clampEnergy(int energy) {
-        return Math.clamp(energy, 0, getCapacity());
+        return Math.clamp(energy, 0, getMaxEnergy());
+    }
+
+    default boolean isEmpty() {
+        return getEnergy() == 0;
     }
 
     /**
@@ -29,15 +27,18 @@ public interface IEnergyContainer {
      * @return amount of energy that could not be inserted
      */
     default int insert(int energy, @NotNull Action action, @NotNull AutomationType automationType) {
-        if (energy <= 0 || !canInsert(automationType)) {
-            return 0;
+        if (energy <= 0) {
+            return energy;
         }
-        int stored = getEnergy();
-        int received = Math.min(Math.min(getRate(), energy), getCapacity() - stored);
-        if (received > 0 && action.execute()) {
-            setEnergy(stored + received);
+        int needed = Math.max(0, getMaxEnergy() - getEnergy());
+        if (needed == 0) {
+            return energy;
         }
-        return energy - received;
+        int toAdd = Math.min(energy, needed);
+        if (action.execute()) {
+            setEnergy(getEnergy() + toAdd);
+        }
+        return energy - toAdd;
     }
 
     /**
@@ -48,14 +49,13 @@ public interface IEnergyContainer {
      * @return amount of extracted energy
      */
     default int extract(int energy, @NotNull Action action, @NotNull AutomationType automationType) {
-        int stored = getEnergy();
-        if (energy <= 0 || stored == 0 || !canExtract(automationType)) {
+        if (energy <= 0 || isEmpty()) {
             return 0;
         }
-        int extracted = Math.min(Math.min(getRate(), energy), stored);
-        if (extracted > 0 && action.execute()) {
-            setEnergy(stored - extracted);
+        int ret = Math.min(getEnergy(), energy);
+        if (ret > 0 && action.execute()) {
+            setEnergy(getEnergy() - ret);
         }
-        return extracted;
+        return ret;
     }
 }

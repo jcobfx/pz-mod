@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import pl.pzmod.PZMod;
+import pl.pzmod.attachments.containers.energy.EnergyContainersBuilder;
 import pl.pzmod.capabilities.Capabilities;
 
 public class BatteryItem extends PZItem {
@@ -30,14 +30,12 @@ public class BatteryItem extends PZItem {
     }
 
     @Override
-    protected @Nullable EnergyHandler getInitialEnergyHandler(@NotNull ItemStack stack) {
-        return ContainerHandlerHelper.builder(new EnergyHandler(), IContainerHolder.from(stack, 1))
-                .addContainer(EnergyContainerConfig.inout(() -> CAPACITY, () -> RATE))
-                .build();
+    protected @NotNull EnergyContainersBuilder addDefaultEnergyContainers(@NotNull EnergyContainersBuilder builder) {
+        return builder.addBasic(() -> RATE, () -> CAPACITY);
     }
 
     @Override
-    public boolean canHandleEnergy() {
+    public boolean hasEnergyContainers() {
         return true;
     }
 

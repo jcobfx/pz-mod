@@ -1,24 +1,19 @@
 package pl.pzmod.capabilities.fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.IFluidTank;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
-import pl.pzmod.data.containers.Action;
-import pl.pzmod.data.containers.AutomationType;
+import pl.pzmod.capabilities.Action;
+import pl.pzmod.capabilities.AutomationType;
 
-public interface IFluidContainer {
-    int getRate();
-
-    int getCapacity();
-
-    @NotNull FluidStack getFluid();
-
+public interface IFluidContainer extends IFluidTank {
     void setFluid(@NotNull FluidStack fluid);
 
-    boolean isFluidValid(@NotNull FluidStack fluid);
-
-    boolean canInsert(@NotNull AutomationType automationType);
-
-    boolean canExtract(@NotNull AutomationType automationType);
+    @Override
+    default int getFluidAmount() {
+        return getFluid().getAmount();
+    }
 
     default boolean isEmpty() {
         return getFluid().isEmpty();
@@ -30,35 +25,34 @@ public interface IFluidContainer {
 
     /**
      *
-     * @param fluid          fluid to insert
+     * @param stack          fluid to insert
      * @param action         action to perform
      * @param automationType automation type
      * @return fluid that could not be inserted
      */
-    default FluidStack insert(@NotNull FluidStack fluid, @NotNull Action action, @NotNull AutomationType automationType) {
-        var stored = getFluid();
-        if (fluid.isEmpty() || !canInsert(automationType) || !isFluidValid(fluid)
-                || (!stored.isEmpty() && !FluidStack.isSameFluidSameComponents(stored, fluid))) {
-            return fluid;
+    default FluidStack insert(@NotNull FluidStack stack, @NotNull Action action, @NotNull AutomationType automationType) {
+        if (stack.isEmpty() || !isFluidValid(stack)) {
+            return stack;
         }
-        int storedAmount = stored.getAmount();
-        int toInsert = fluid.getAmount();
-        int inserted = Math.min(Math.min(getRate(), toInsert), getCapacity() - storedAmount);
-        if (inserted > 0 && action.execute()) {
-            setFluid(fluid.copyWithAmount(storedAmount + inserted));
+        int needed = Math.max(0, getCapacity() - getFluidAmount());
+        if (needed == 0) {
+            return stack;
         }
-        return fluid.copyWithAmount(toInsert - inserted);
-    }
-
-    /**
-     *
-     * @param fluid          fluid to extract
-     * @param action         action to perform
-     * @param automationType automation type
-     * @return extracted fluid
-     */
-    default @NotNull FluidStack extract(@NotNull FluidStack fluid, @NotNull Action action, @NotNull AutomationType automationType) {
-        return !fluid.isEmpty() && isFluidEqual(fluid) ? extract(fluid.getAmount(), action, automationType) : fluid;
+        var current = getFluid();
+        boolean empty = stack.isEmpty();
+        boolean sameType = !empty && FluidStack.isSameFluidSameComponents(stack, current);
+        if (empty || sameType) {
+            int toAdd = Math.min(stack.getAmount(), needed);
+            if (action.execute()) {
+                if (sameType) {
+                    setFluid(current.copyWithAmount(current.getAmount() + toAdd));
+                } else {
+                    setFluid(stack.copyWithAmount(toAdd));
+                }
+            }
+            return stack.copyWithAmount(stack.getAmount() - toAdd);
+        }
+        return stack;
     }
 
     /**
@@ -69,15 +63,32 @@ public interface IFluidContainer {
      * @return extracted fluid
      */
     default @NotNull FluidStack extract(int amount, @NotNull Action action, @NotNull AutomationType automationType) {
-        if (amount <= 0 || !canExtract(automationType)) {
+        if (isEmpty() || amount < 1) {
             return FluidStack.EMPTY;
         }
-        var stored = getFluid();
-        int storedAmount = stored.getAmount();
-        int extracted = Math.min(Math.min(getRate(), amount), storedAmount);
-        if (extracted > 0 && action.execute()) {
-            setFluid(stored.copyWithAmount(storedAmount - extracted));
+        FluidStack current = getFluid();
+        FluidStack ret = current.copyWithAmount(Math.min(current.getAmount(), amount));
+        if (!ret.isEmpty() && action.execute()) {
+            setFluid(current.copyWithAmount(current.getAmount() - ret.getAmount()));
         }
-        return stored.copyWithAmount(extracted);
+        return ret;
+    }
+
+    @Override
+    default int fill(@NotNull FluidStack stack, IFluidHandler.@NotNull FluidAction action) {
+        return stack.getAmount() - insert(stack, Action.fromFluidAction(action), AutomationType.EXTERNAL).getAmount();
+    }
+
+    @Override
+    default @NotNull FluidStack drain(int amount, IFluidHandler.@NotNull FluidAction action) {
+        return extract(amount, Action.fromFluidAction(action), AutomationType.EXTERNAL);
+    }
+
+    @Override
+    default @NotNull FluidStack drain(@NotNull FluidStack stack, IFluidHandler.@NotNull FluidAction action) {
+        if (!isEmpty() && isFluidEqual(stack)) {
+            return extract(stack.getAmount(), Action.fromFluidAction(action), AutomationType.EXTERNAL);
+        }
+        return FluidStack.EMPTY;
     }
 }

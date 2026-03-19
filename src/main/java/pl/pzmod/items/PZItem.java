@@ -1,77 +1,53 @@
 package pl.pzmod.items;
 
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.bus.api.IEventBus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pl.pzmod.capabilities.energy.IEnergyContainer;
-import pl.pzmod.data.containers.energy.IPZEnergyHandler;
-import pl.pzmod.capabilities.fluid.IFluidContainer;
-import pl.pzmod.data.containers.fluids.IPZFluidHandler;
-import pl.pzmod.capabilities.item.IItemContainer;
-import pl.pzmod.data.containers.items.IPZItemHandler;
+import pl.pzmod.attachments.containers.ContainerType;
+import pl.pzmod.attachments.containers.energy.EnergyContainersBuilder;
+import pl.pzmod.attachments.containers.fluid.FluidContainersBuilder;
+import pl.pzmod.attachments.containers.item.ItemContainersBuilder;
 
-import java.util.List;
-
-public abstract class PZItem extends Item implements IPZEnergyHandler, IPZFluidHandler, IPZItemHandler {
-    public static final ICapabilityProvider<ItemStack, Void, IEnergyStorage> ENERGY_HANDLER_PROVIDER;
-    public static final ICapabilityProvider<ItemStack, Void, IFluidHandlerItem> FLUID_HANDLER_PROVIDER;
-    public static final ICapabilityProvider<ItemStack, Void, IItemHandler> ITEM_HANDLER_PROVIDER;
-
-    static {
-        ENERGY_HANDLER_PROVIDER = null;
-        FLUID_HANDLER_PROVIDER = null;
-        ITEM_HANDLER_PROVIDER = null;
-    }
-
+public abstract class PZItem extends Item implements IContainerItem {
     protected PZItem(Properties properties) {
         super(properties);
     }
 
-    protected @Nullable EnergyHandler getInitialEnergyHandler(@NotNull ItemStack stack) {
-        return null;
+    protected @NotNull EnergyContainersBuilder addDefaultEnergyContainers(@NotNull EnergyContainersBuilder builder) {
+        return builder;
     }
 
-    protected @Nullable FluidHandler getInitialFluidHandler(@NotNull ItemStack stack) {
-        return null;
-    }
-
-    protected @Nullable ItemHandler getInitialItemHandler(@NotNull ItemStack stack) {
-        return null;
-    }
-
-    @Override
-    public @NotNull List<IEnergyContainer> getEnergyContainers(@Nullable Direction side) {
-        return List.of();
-    }
-
-    @Override
     public boolean hasEnergyContainers() {
         return false;
     }
 
-    @Override
-    public @NotNull List<IFluidContainer> getFluidContainers(@Nullable Direction side) {
-        return List.of();
+    protected @NotNull FluidContainersBuilder addDefaultFluidContainers(@NotNull FluidContainersBuilder builder) {
+        return builder;
     }
 
-    @Override
     public boolean hasFluidContainers() {
         return false;
     }
 
-    @Override
-    public @NotNull List<IItemContainer> getItemContainers(@Nullable Direction side) {
-        return List.of();
+    protected @NotNull ItemContainersBuilder addDefaultItemContainers(@NotNull ItemContainersBuilder builder) {
+        return builder;
+    }
+
+    public boolean hasItemContainers() {
+        return false;
     }
 
     @Override
-    public boolean hasItemContainers() {
-        return false;
+    public void addDefaultContainers(@Nullable IEventBus bus) {
+        if (hasEnergyContainers()) {
+            ContainerType.ENERGY.addDefaultCreators(bus, this, () -> addDefaultEnergyContainers(EnergyContainersBuilder.builder()).build());
+        }
+        if (hasFluidContainers()) {
+            ContainerType.FLUIDS.addDefaultCreators(bus, this, () -> addDefaultFluidContainers(FluidContainersBuilder.builder()).build());
+        }
+        if (hasItemContainers()) {
+            ContainerType.ITEMS.addDefaultCreators(bus, this, () -> addDefaultItemContainers(ItemContainersBuilder.builder()).build());
+        }
     }
 }

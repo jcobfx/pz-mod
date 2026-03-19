@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pl.pzmod.data.containers.items.ISidedItemHandler;
+import pl.pzmod.capabilities.item.ISidedItemHandler;
 
 public class ItemHandlerProxy implements IItemHandlerModifiable {
     private final ISidedItemHandler sidedItemHandler;

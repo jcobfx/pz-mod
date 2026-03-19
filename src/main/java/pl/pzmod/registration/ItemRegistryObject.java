@@ -2,31 +2,25 @@ package pl.pzmod.registration;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
-import net.neoforged.neoforge.capabilities.ItemCapability;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.ItemLike;
+import net.neoforged.bus.api.IEventBus;
+import org.jetbrains.annotations.NotNull;
+import pl.pzmod.items.IContainerItem;
 
-import java.util.List;
-
-public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I> {
-    private @Nullable List<CapabilityData<?>> capabilities;
-
+public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I> implements ItemLike {
     protected ItemRegistryObject(ResourceKey<Item> key) {
         super(key);
     }
 
-    void setCapabilities(@Nullable List<CapabilityData<?>> capabilities) {
-        this.capabilities = capabilities;
+    void attachDefaultContainers(@NotNull IEventBus eventBus) {
+        if (get() instanceof IContainerItem containerItem) {
+            containerItem.addDefaultContainers(eventBus);
+        }
     }
 
-    void registerCapabilities(RegisterCapabilitiesEvent event) {
-        if (capabilities != null) {
-            for (var cap : this.capabilities) {
-                cap.register(event, value());
-            }
-        }
+    @Override
+    public @NotNull Item asItem() {
+        return value();
     }
 
     @Override
@@ -37,12 +31,5 @@ public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I
     @Override
     public int hashCode() {
         return super.hashCode();
-    }
-
-    record CapabilityData<T>(ItemCapability<T, Void> capability,
-                                             ICapabilityProvider<ItemStack, Void, T> provider) {
-        private <I extends Item> void register(RegisterCapabilitiesEvent event, I item) {
-            event.registerItem(capability, provider, item);
-        }
     }
 }

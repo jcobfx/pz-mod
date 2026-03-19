@@ -51,7 +51,7 @@ The mod implements a layered capability architecture for energy, fluid, and item
 `PZItem` extends `Item` and implements all holder interfaces with default (disabled) values. Custom items extend this and override relevant methods to enable capabilities.
 
 ### Data Storage
-Persistent item data uses DataComponents in `pl.pzmod.data.containers`:
+Persistent item data uses DataComponents in `pl.pzmod.attachments.containers`:
 - `AttachedEnergy` - Stores energy as integer
 - `AttachedItems` - Stores inventory contents
 - `AttachedFluids` - Stores fluid tank contents

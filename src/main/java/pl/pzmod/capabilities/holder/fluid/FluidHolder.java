@@ -10,13 +10,12 @@ import pl.pzmod.capabilities.holder.ContainerHolder;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class FluidHolder extends ContainerHolder<IFluidContainer> implements IMutableFluidHolder {
-    FluidHolder(Supplier<Direction> facingSupplier) {
+public class FluidHolder extends ContainerHolder<IFluidContainer> implements IFluidHolder {
+    public FluidHolder(Supplier<Direction> facingSupplier) {
         super(facingSupplier);
     }
 
-    @Override
-    public void addFluidContainer(@NotNull IFluidContainer container, RelativeSide... sides) {
+    void addFluidContainer(@NotNull IFluidContainer container, RelativeSide... sides) {
         addContainerInternal(container, sides);
     }
 

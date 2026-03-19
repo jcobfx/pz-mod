@@ -16,14 +16,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import pl.pzmod.attachments.containers.ConstantPredicates;
+import pl.pzmod.capabilities.AutomationType;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.energy.AttachmentBackedEnergy;
 import pl.pzmod.capabilities.holder.energy.EnergyContainerHelper;
 import pl.pzmod.capabilities.holder.energy.IEnergyHolder;
 import pl.pzmod.capabilities.holder.item.IItemHolder;
 import pl.pzmod.capabilities.holder.item.ItemContainerHelper;
-import pl.pzmod.capabilities.item.AttachmentBackedItems;
-import pl.pzmod.data.containers.IAttachmentHolder;
 import pl.pzmod.menus.generator.GeneratorMenu;
 import pl.pzmod.registries.PZBlocks;
 
@@ -32,28 +31,28 @@ import java.util.Objects;
 public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider {
     private static final int ENERGY_PER_TICK = 20;
 
-    public static void tickServer(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity be) {
+    public static void tickServer(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity blockEntity) {
         if (level.isClientSide()) return;
-        var energyCap = Capabilities.ENERGY.getCapability(level, pos, state, be, null);
-        var itemCap = Capabilities.ITEM.getCapability(level, pos, state, be, null);
+        var energyCap = Capabilities.ENERGY.getCapability(level, pos, state, blockEntity, null);
+        var itemCap = Capabilities.ITEM.getCapability(level, pos, state, blockEntity, null);
         if (energyCap == null || itemCap == null) {
             return;
         }
 
         boolean changed = false;
-        if (be.burnTime > 0) {
-            be.burnTime--;
+        if (blockEntity.burnTime > 0) {
+            blockEntity.burnTime--;
             energyCap.receiveEnergy(ENERGY_PER_TICK, false);
             changed = true;
         }
 
-        if (be.burnTime <= 0 && energyCap.getEnergyStored() < energyCap.getMaxEnergyStored()) {
+        if (blockEntity.burnTime <= 0 && energyCap.getEnergyStored() < energyCap.getMaxEnergyStored()) {
             ItemStack fuelStack = itemCap.getStackInSlot(0);
             if (!fuelStack.isEmpty()) {
                 int burnTicks = fuelStack.getBurnTime(RecipeType.SMELTING);
                 if (burnTicks > 0) {
-                    be.burnTime = burnTicks;
-                    be.burnTimeTotal = burnTicks;
+                    blockEntity.burnTime = burnTicks;
+                    blockEntity.burnTimeTotal = burnTicks;
                     itemCap.extractItem(0, 1, false);
                     changed = true;
                 }
@@ -61,7 +60,7 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
         }
 
         if (changed) {
-            be.setChanged();
+            blockEntity.setChanged();
         }
     }
 
@@ -101,16 +100,16 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
     }
 
     @Override
-    public @NotNull IEnergyHolder getInitialEnergyHolder() {
-        var builder = EnergyContainerHelper.forSide(this::getFacing, IAttachmentHolder.from(this, 1));
-        builder.addContainer(AttachmentBackedEnergy.output(() -> 100_000, () -> 1000));
+    protected @NotNull IEnergyHolder getInitialEnergyHolder() {
+        var builder = EnergyContainerHelper.forSide(this::getFacing, this);
+        builder.addBasic(ConstantPredicates.alwaysTrue(), AutomationType::notExternal, () -> 1000, () -> 100_000);
         return builder.build();
     }
 
     @Override
-    public @NotNull IItemHolder getInitialItemHolder() {
-        var builder = ItemContainerHelper.forSide(this::getFacing, IAttachmentHolder.from(this, 1));
-        builder.addContainer(AttachmentBackedItems.input(stack -> stack.getBurnTime(RecipeType.SMELTING) > 0, () -> 100));
+    protected @NotNull IItemHolder getInitialItemHolder() {
+        var builder = ItemContainerHelper.forSide(this::getFacing, this);
+        builder.addFuelSlot();
         return builder.build();
     }
 

@@ -8,33 +8,28 @@ import pl.pzmod.capabilities.RelativeSide;
 import java.util.*;
 import java.util.function.Supplier;
 
-public abstract class ContainerHolder<T> implements IHolder {
-    private final Map<RelativeSide, List<T>> directionalContainers;
-    private final List<T> inventoryContainers;
+public abstract class ContainerHolder<C> {
+    private final Map<RelativeSide, List<C>> directionalContainers;
+    private final List<C> containers;
     private final Supplier<Direction> facingSupplier;
 
     protected ContainerHolder(Supplier<Direction> facingSupplier) {
         this.directionalContainers = new EnumMap<>(RelativeSide.class);
-        this.inventoryContainers = new ArrayList<>();
+        this.containers = new ArrayList<>();
         this.facingSupplier = facingSupplier;
     }
 
-    protected void addContainerInternal(@NotNull T container, RelativeSide... sides) {
-        inventoryContainers.add(container);
+    protected void addContainerInternal(@NotNull C container, RelativeSide... sides) {
+        containers.add(container);
         for (RelativeSide side : sides) {
-            directionalContainers.computeIfAbsent(side, k -> new ArrayList<>()).add(container);
+            directionalContainers.computeIfAbsent(side, s -> new ArrayList<>()).add(container);
         }
     }
 
-    @NotNull
-    public List<T> getContainers(@Nullable Direction side) {
+    public @NotNull List<C> getContainers(@Nullable Direction side) {
         if (side == null || directionalContainers.isEmpty()) {
-            return inventoryContainers;
+            return containers;
         }
-        List<T> slots = directionalContainers.get(RelativeSide.fromDirections(facingSupplier.get(), side));
-        if (slots == null) {
-            return Collections.emptyList();
-        }
-        return slots;
+        return directionalContainers.getOrDefault(RelativeSide.fromDirections(facingSupplier.get(), side), Collections.emptyList());
     }
 }

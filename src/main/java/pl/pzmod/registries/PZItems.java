@@ -13,17 +13,11 @@ import pl.pzmod.registration.ItemRegistryObject;
 public class PZItems {
     public static final ItemDeferredRegister ITEMS = new ItemDeferredRegister(PZMod.MODID);
 
-    public static final ItemRegistryObject<BatteryItem> BATTERY = ITEMS.builder("battery", BatteryItem::new)
-            .with(Capabilities.ENERGY.item(), PZItem.ENERGY_HANDLER_PROVIDER)
-            .build();
+    public static final ItemRegistryObject<BatteryItem> BATTERY = ITEMS.registerItem("battery", BatteryItem::new);
 
-    public static final ItemRegistryObject<BackpackItem> BACKPACK = ITEMS.builder("backpack", BackpackItem::new)
-            .with(Capabilities.ITEM.item(), PZItem.ITEM_HANDLER_PROVIDER)
-            .build();
+    public static final ItemRegistryObject<BackpackItem> BACKPACK = ITEMS.registerItem("backpack", BackpackItem::new);
 
-    public static final ItemRegistryObject<BigBucketItem> BIG_BUCKET = ITEMS.builder("big_bucket", BigBucketItem::new)
-            .with(Capabilities.FLUID.item(), PZItem.FLUID_HANDLER_PROVIDER)
-            .build();
+    public static final ItemRegistryObject<BigBucketItem> BIG_BUCKET = ITEMS.registerItem("big_bucket", BigBucketItem::new);
 
     public static void register(IEventBus bus) {
         ITEMS.register(bus);

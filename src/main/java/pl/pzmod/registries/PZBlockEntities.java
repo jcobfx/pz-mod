@@ -4,7 +4,6 @@ import net.neoforged.bus.api.IEventBus;
 import pl.pzmod.PZMod;
 import pl.pzmod.blocks.entities.CapabilityBlockEntity;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
-import pl.pzmod.blocks.entities.PZBlockEntity;
 import pl.pzmod.capabilities.Capabilities;
 import pl.pzmod.registration.BlockEntityTypeDeferredRegister;
 import pl.pzmod.registration.BlockEntityTypeRegistryObject;

@@ -6,9 +6,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import pl.pzmod.PZMod;
-import pl.pzmod.data.containers.energy.AttachedEnergy;
-import pl.pzmod.data.containers.fluids.AttachedFluids;
-import pl.pzmod.data.containers.items.AttachedItems;
+import pl.pzmod.attachments.containers.energy.AttachedEnergy;
+import pl.pzmod.attachments.containers.fluid.AttachedFluids;
+import pl.pzmod.attachments.containers.item.AttachedItems;
 
 public class PZAttachments {
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
