@@ -1,4 +1,4 @@
-package pl.pzmod.capabilities.fluid;
+package pl.pzmod.attachments.containers.fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.IFluidTank;

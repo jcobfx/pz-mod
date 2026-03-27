@@ -21,7 +21,8 @@ public record AttachedEnergy(List<Integer> contents) implements IAttachedContain
 
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                SerializerHelper.POSITIVE_INT_CODEC.listOf().fieldOf(SerializationConstants.ENERGY_CONTAINERS)
+                SerializerHelper.POSITIVE_INT_CODEC.listOf()
+                        .fieldOf(SerializationConstants.ENERGY_CONTAINERS)
                         .forGetter(AttachedEnergy::contents)
         ).apply(instance, AttachedEnergy::new));
 

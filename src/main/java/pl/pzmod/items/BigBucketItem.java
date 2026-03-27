@@ -26,7 +26,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.attachments.containers.ConstantPredicates;
@@ -55,15 +54,17 @@ public class BigBucketItem extends PZItem {
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
+        // TODO: fix
+
         ItemStack bigBucket = player.getItemInHand(usedHand);
-        IExtendedFluidHandler fluidTank = (IExtendedFluidHandler) Capabilities.FLUID.getCapability(bigBucket);
-        if (fluidTank == null) {
+        IExtendedFluidHandler fluidCap = (IExtendedFluidHandler) Capabilities.FLUID.getCapability(bigBucket);
+        if (fluidCap == null) {
             return InteractionResultHolder.pass(bigBucket);
         }
 
-        FluidStack stored = fluidTank.getFluidInTank(0);
+        FluidStack stored = fluidCap.getFluidInTank(0);
         BlockHitResult blockHitResult = getPlayerPOVHitResult(level, player,
-                stored.getAmount() < fluidTank.getTankCapacity(0) ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
+                stored.getAmount() < fluidCap.getTankCapacity(0) ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
         if (blockHitResult.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(bigBucket);
         }
@@ -77,18 +78,18 @@ public class BigBucketItem extends PZItem {
 
         FluidState fluidState = level.getFluidState(blockpos);
         BlockState blockstate = level.getBlockState(blockpos);
-        if (fluidState.isSource() && canInsertFluid(fluidTank, fluidState.getType())
+        if (fluidState.isSource() && canInsertFluid(fluidCap, fluidState.getType())
                 && blockstate.getBlock() instanceof BucketPickup bucketpickup
                 && !bucketpickup.pickupBlock(player, level, blockpos, blockstate).isEmpty()) {
             bucketpickup.getPickupSound(blockstate).ifPresent(event -> player.playSound(event, 1.0F, 1.0F));
-            fluidTank.insertFluid(new FluidStack(fluidState.getType(), 1000), Action.EXECUTE);
+            fluidCap.insertFluid(0, new FluidStack(fluidState.getType(), 1000), Action.EXECUTE);
             return InteractionResultHolder.sidedSuccess(bigBucket, level.isClientSide());
         }
 
         BlockPos targetPos = canBlockContainFluid(player, level, blockpos, blockstate, stored.getFluid())
                 ? blockpos : relativeBlockpos;
-        if (!stored.isEmpty() && extractFromTank(player, level, targetPos, blockHitResult, fluidTank)) {
-            fluidTank.extractFluid(new FluidStack(stored.getFluid(), 1000), Action.EXECUTE);
+        if (!stored.isEmpty() && extractFromTank(player, level, targetPos, blockHitResult, fluidCap)) {
+            fluidCap.extractFluid(0, 1000, Action.EXECUTE);
             playEmptySound(player, level, blockpos, stored);
             return InteractionResultHolder.sidedSuccess(bigBucket, level.isClientSide());
         }
@@ -100,17 +101,18 @@ public class BigBucketItem extends PZItem {
                                     @NotNull Level level,
                                     BlockPos pos,
                                     @Nullable BlockHitResult result,
-                                    IExtendedFluidHandler fluidTank) {
-        FluidStack stored = fluidTank.getFluidInTank(0);
+                                    IExtendedFluidHandler fluidCap) {
+        FluidStack stored = fluidCap.getFluidInTank(0);
         BlockState blockstate = level.getBlockState(pos);
-        if (!canExtractFluid(fluidTank, stored.getFluid())) {
+        Fluid fluid = stored.getFluid();
+        if (!canExtractFluid(fluidCap, fluid)) {
             return false;
         }
 
-        if (!blockstate.isAir() && !blockstate.canBeReplaced(stored.getFluid())
-                && !canBlockContainFluid(player, level, pos, blockstate, stored.getFluid())) {
+        if (!blockstate.isAir() && !blockstate.canBeReplaced(fluid)
+                && !canBlockContainFluid(player, level, pos, blockstate, fluid)) {
             return result != null && extractFromTank(player, level,
-                    result.getBlockPos().relative(result.getDirection()), null, fluidTank);
+                    result.getBlockPos().relative(result.getDirection()), null, fluidCap);
         }
 
         if (stored.getFluidType().isVaporizedOnPlacement(level, pos, stored)) {
@@ -132,8 +134,8 @@ public class BigBucketItem extends PZItem {
         }
 
         if (blockstate.getBlock() instanceof LiquidBlockContainer liquidBlockContainer &&
-                liquidBlockContainer.canPlaceLiquid(player, level, pos, blockstate, stored.getFluid())) {
-            liquidBlockContainer.placeLiquid(level, pos, blockstate, ((FlowingFluid) stored.getFluid()).getSource(false));
+                liquidBlockContainer.canPlaceLiquid(player, level, pos, blockstate, fluid)) {
+            liquidBlockContainer.placeLiquid(level, pos, blockstate, ((FlowingFluid) fluid).getSource(false));
             return true;
         }
 
@@ -141,7 +143,7 @@ public class BigBucketItem extends PZItem {
         if (!level.isClientSide() && blockstate.canBeReplaced() && fluidstate.isEmpty()) {
             level.destroyBlock(pos, true);
         }
-        return level.setBlock(pos, stored.getFluid().defaultFluidState().createLegacyBlock(), 11)
+        return level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), 11)
                 || blockstate.getFluidState().isSource();
     }
 
@@ -162,20 +164,20 @@ public class BigBucketItem extends PZItem {
     }
 
     private int getFluidAmount(@NotNull ItemStack stack) {
-        IFluidHandler fluidTank = Capabilities.FLUID.getCapability(stack);
+        IExtendedFluidHandler fluidTank = (IExtendedFluidHandler) Capabilities.FLUID.getCapability(stack);
         if (fluidTank != null) {
             return fluidTank.getFluidInTank(0).getAmount();
         }
         return 0;
     }
 
-    private boolean canInsertFluid(IExtendedFluidHandler tank, Fluid fluid) {
-        int filledAmount = tank.insertFluid(new FluidStack(fluid, 1000), Action.SIMULATE).getAmount();
+    private boolean canInsertFluid(IExtendedFluidHandler fluidCap, Fluid fluid) {
+        int filledAmount = fluidCap.insertFluid(new FluidStack(fluid, 1000), Action.SIMULATE).getAmount();
         return filledAmount >= 1000;
     }
 
-    private boolean canExtractFluid(IExtendedFluidHandler tank, Fluid fluid) {
-        FluidStack drainedStack = tank.extractFluid(new FluidStack(fluid, 1000), Action.SIMULATE);
+    private boolean canExtractFluid(IExtendedFluidHandler fluidCap, Fluid fluid) {
+        FluidStack drainedStack = fluidCap.extractFluid(new FluidStack(fluid, 1000), Action.SIMULATE);
         return drainedStack.getAmount() >= 1000;
     }
 

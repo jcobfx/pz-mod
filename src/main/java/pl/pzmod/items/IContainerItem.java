@@ -1,8 +1,8 @@
 package pl.pzmod.items;
 
 import net.neoforged.bus.api.IEventBus;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 public interface IContainerItem {
-    void addDefaultContainers(@Nullable IEventBus bus);
+    void attachDefaultContainers(@NotNull IEventBus bus);
 }

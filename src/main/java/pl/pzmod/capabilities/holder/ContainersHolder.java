@@ -8,12 +8,12 @@ import pl.pzmod.capabilities.RelativeSide;
 import java.util.*;
 import java.util.function.Supplier;
 
-public abstract class ContainerHolder<C> {
+public abstract class ContainersHolder<C> {
     private final Map<RelativeSide, List<C>> directionalContainers;
     private final List<C> containers;
     private final Supplier<Direction> facingSupplier;
 
-    protected ContainerHolder(Supplier<Direction> facingSupplier) {
+    protected ContainersHolder(Supplier<Direction> facingSupplier) {
         this.directionalContainers = new EnumMap<>(RelativeSide.class);
         this.containers = new ArrayList<>();
         this.facingSupplier = facingSupplier;

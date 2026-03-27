@@ -1,15 +1,17 @@
 package pl.pzmod.attachments.containers.creator;
 
-import net.minecraft.world.item.ItemStack;
-import pl.pzmod.attachments.containers.ContainerType;
+import org.jetbrains.annotations.NotNull;
 import pl.pzmod.attachments.containers.IAttachedContainers;
+import pl.pzmod.attachments.containers.AttachedContainer;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public abstract class ContainerCreator<C, A extends IAttachedContainers<?, A>> implements IContainerCreator<C, A> {
-    private final List<IBasicContainerCreator<? extends C>> creators;
+public abstract class ContainerCreator<T, A extends IAttachedContainers<T, A>, C extends AttachedContainer<T, A>> implements IContainerCreator<T, A, C> {
+    private final List<IBaseContainerCreator<T, A, ? extends C>> creators;
 
-    protected ContainerCreator(List<IBasicContainerCreator<? extends C>> creators) {
+    protected ContainerCreator(List<IBaseContainerCreator<T, A, ? extends C>> creators) {
         this.creators = List.copyOf(creators);
     }
 
@@ -19,7 +21,7 @@ public abstract class ContainerCreator<C, A extends IAttachedContainers<?, A>> i
     }
 
     @Override
-    public C create(ContainerType<? super C, ?, ?> containerType, ItemStack attachedTo, int containerIndex) {
-        return creators.get(containerIndex).create(containerType, attachedTo, containerIndex);
+    public @NotNull C create(int containerIndex, Supplier<A> attachedGetter, Consumer<A> attachedSetter, Supplier<A> attachedCreator) {
+        return creators.get(containerIndex).create(containerIndex, attachedGetter, attachedSetter, attachedCreator);
     }
 }

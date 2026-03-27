@@ -3,7 +3,7 @@ package pl.pzmod.attachments.containers.item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.attachments.containers.creator.ContainerCreator;
-import pl.pzmod.attachments.containers.creator.IBasicContainerCreator;
+import pl.pzmod.attachments.containers.creator.IBaseContainerCreator;
 import pl.pzmod.attachments.containers.ConstantPredicates;
 
 import java.util.ArrayList;
@@ -11,35 +11,39 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class ItemContainersBuilder {
-    private static final IBasicContainerCreator<ComponentBackedItemContainer> BASIC_SLOT_CREATOR =
-            (type, attachedTo, containerIndex) -> new ComponentBackedItemContainer(
-                    attachedTo, containerIndex, ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrue());
-    private static final IBasicContainerCreator<ComponentBackedItemContainer> BASIC_INPUT_SLOT_CREATOR =
-            (type, attachedTo, containerIndex) -> new ComponentBackedItemContainer(
-                    attachedTo, containerIndex, ConstantPredicates.alwaysTrueBi(), ConstantPredicates.notExternal(), ConstantPredicates.alwaysTrue());
-    private static final IBasicContainerCreator<ComponentBackedItemContainer> OUTPUT_SLOT_CREATOR =
-            (type, attachedTo, containerIndex) -> new ComponentBackedItemContainer(
-                    attachedTo, containerIndex, ConstantPredicates.internalOnly(), ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrue());
+    private static final IItemContainerCreator<? extends AttachedItemContainer> BASIC_SLOT_CREATOR =
+            (containerIndex, getter, setter, creator) ->
+                    new AttachedItemContainer(containerIndex, getter, setter, creator, ConstantPredicates.alwaysTrue(),
+                            ConstantPredicates.alwaysTrueBi(), ConstantPredicates.alwaysTrueBi());
+    private static final IItemContainerCreator<? extends AttachedItemContainer> BASIC_INPUT_SLOT_CREATOR =
+            (containerIndex, getter, setter, creator) ->
+                    new AttachedItemContainer(containerIndex, getter, setter, creator, ConstantPredicates.alwaysTrue(),
+                            ConstantPredicates.alwaysTrueBi(), ConstantPredicates.notExternal());
+    private static final IItemContainerCreator<? extends AttachedItemContainer> OUTPUT_SLOT_CREATOR =
+            (containerIndex, getter, setter, creator) ->
+                    new AttachedItemContainer(containerIndex, getter, setter, creator, ConstantPredicates.alwaysTrue(),
+                            ConstantPredicates.internalOnly(), ConstantPredicates.alwaysTrueBi());
 
-    private static final IBasicContainerCreator<ComponentBackedItemContainer> FUEL_SLOT_CREATOR =
-            (type, attachedTo, containerIndex) -> new ComponentBackedItemContainer(
-                    attachedTo, containerIndex, ConstantPredicates.FUEL_CAN_EXTRACT, ConstantPredicates.FUEL_CAN_INSERT, ConstantPredicates.alwaysTrue());
+    private static final IItemContainerCreator<? extends AttachedItemContainer> FUEL_SLOT_CREATOR =
+            (containerIndex, getter, setter, creator) ->
+                    new AttachedItemContainer(containerIndex, getter, setter, creator, ConstantPredicates.alwaysTrue(),
+                            ConstantPredicates.FUEL_CAN_EXTRACT, ConstantPredicates.FUEL_CAN_INSERT);
 
     public static ItemContainersBuilder builder() {
         return new ItemContainersBuilder();
     }
 
-    private final List<IBasicContainerCreator<? extends ComponentBackedItemContainer>> slotCreators;
+    private final List<IBaseContainerCreator<ItemStack, AttachedItems, ? extends AttachedItemContainer>> slotCreators;
 
     private ItemContainersBuilder() {
         this.slotCreators = new ArrayList<>();
     }
 
-    public ContainerCreator<ComponentBackedItemContainer, AttachedItems> build() {
+    public ContainerCreator<ItemStack, AttachedItems, AttachedItemContainer> build() {
         return new BaseInventorySlotCreator(slotCreators);
     }
 
-    public ItemContainersBuilder addSlots(int count, IBasicContainerCreator<? extends ComponentBackedItemContainer> creator) {
+    public ItemContainersBuilder addSlots(int count, IItemContainerCreator<? extends AttachedItemContainer> creator) {
         for (int i = 0; i < count; i++) {
             addSlot(creator);
         }
@@ -67,18 +71,18 @@ public class ItemContainersBuilder {
     }
 
     public ItemContainersBuilder addInput(Predicate<@NotNull ItemStack> isItemValid) {
-        return addSlot((type, attachedTo, containerIndex) ->
-                new ComponentBackedItemContainer(attachedTo, containerIndex, ConstantPredicates.alwaysTrueBi(), ConstantPredicates.notExternal(), isItemValid));
+        return addSlot((containerIndex, getter, setter, creator) ->
+                new AttachedItemContainer(containerIndex, getter, setter, creator, isItemValid,
+                        ConstantPredicates.alwaysTrueBi(), ConstantPredicates.notExternal()));
     }
 
-    public ItemContainersBuilder addSlot(IBasicContainerCreator<? extends ComponentBackedItemContainer> slot) {
+    public ItemContainersBuilder addSlot(IItemContainerCreator<? extends AttachedItemContainer> slot) {
         slotCreators.add(slot);
         return this;
     }
 
-    private static class BaseInventorySlotCreator extends ContainerCreator<ComponentBackedItemContainer, AttachedItems> {
-
-        public BaseInventorySlotCreator(List<IBasicContainerCreator<? extends ComponentBackedItemContainer>> creators) {
+    private static class BaseInventorySlotCreator extends ContainerCreator<ItemStack, AttachedItems, AttachedItemContainer> {
+        public BaseInventorySlotCreator(List<IBaseContainerCreator<ItemStack, AttachedItems, ? extends AttachedItemContainer>> creators) {
             super(creators);
         }
 

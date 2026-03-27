@@ -17,12 +17,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.attachments.containers.ConstantPredicates;
+import pl.pzmod.capabilities.Action;
 import pl.pzmod.capabilities.AutomationType;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.holder.energy.EnergyContainerHelper;
+import pl.pzmod.capabilities.holder.energy.EnergyHolderHelper;
 import pl.pzmod.capabilities.holder.energy.IEnergyHolder;
 import pl.pzmod.capabilities.holder.item.IItemHolder;
-import pl.pzmod.capabilities.holder.item.ItemContainerHelper;
+import pl.pzmod.capabilities.holder.item.ItemHolderHelper;
 import pl.pzmod.menus.generator.GeneratorMenu;
 import pl.pzmod.registries.PZBlocks;
 
@@ -32,28 +33,31 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
     private static final int ENERGY_PER_TICK = 20;
 
     public static void tickServer(Level level, BlockPos pos, BlockState state, GeneratorBlockEntity blockEntity) {
-        if (level.isClientSide()) return;
-        var energyCap = Capabilities.ENERGY.getCapability(level, pos, state, blockEntity, null);
-        var itemCap = Capabilities.ITEM.getCapability(level, pos, state, blockEntity, null);
-        if (energyCap == null || itemCap == null) {
+        if (level.isClientSide() || !blockEntity.hasEnergyContainers() || !blockEntity.hasItemContainers()) {
             return;
         }
-
+        var energyContainerOpt = blockEntity.getEnergyContainer(0, null);
+        var itemContainerOpt = blockEntity.getItemContainer(0, null);
+        if (energyContainerOpt.isEmpty() || itemContainerOpt.isEmpty()) {
+            return;
+        }
+        var energyContainer = energyContainerOpt.get();
+        var itemContainer = itemContainerOpt.get();
         boolean changed = false;
         if (blockEntity.burnTime > 0) {
             blockEntity.burnTime--;
-            energyCap.receiveEnergy(ENERGY_PER_TICK, false);
+            energyContainer.insert(ENERGY_PER_TICK, Action.EXECUTE, AutomationType.INTERNAL);
             changed = true;
         }
 
-        if (blockEntity.burnTime <= 0 && energyCap.getEnergyStored() < energyCap.getMaxEnergyStored()) {
-            ItemStack fuelStack = itemCap.getStackInSlot(0);
+        if (blockEntity.burnTime <= 0 && energyContainer.getEnergy() < energyContainer.getMaxEnergy()) {
+            ItemStack fuelStack = itemContainer.getItem();
             if (!fuelStack.isEmpty()) {
                 int burnTicks = fuelStack.getBurnTime(RecipeType.SMELTING);
                 if (burnTicks > 0) {
                     blockEntity.burnTime = burnTicks;
                     blockEntity.burnTimeTotal = burnTicks;
-                    itemCap.extractItem(0, 1, false);
+                    itemContainer.extract(0, Action.EXECUTE, AutomationType.INTERNAL);
                     changed = true;
                 }
             }
@@ -101,16 +105,16 @@ public class GeneratorBlockEntity extends PZBlockEntity implements MenuProvider 
 
     @Override
     protected @NotNull IEnergyHolder getInitialEnergyHolder() {
-        var builder = EnergyContainerHelper.forSide(this::getFacing, this);
-        builder.addBasic(ConstantPredicates.alwaysTrue(), AutomationType::notExternal, () -> 1000, () -> 100_000);
-        return builder.build();
+        return EnergyHolderHelper.forSide(this::getFacing, this)
+                .addBasic(ConstantPredicates.alwaysTrue(), AutomationType::notExternal, () -> 100_000, () -> 1000)
+                .build();
     }
 
     @Override
     protected @NotNull IItemHolder getInitialItemHolder() {
-        var builder = ItemContainerHelper.forSide(this::getFacing, this);
-        builder.addFuelSlot();
-        return builder.build();
+        return ItemHolderHelper.forSide(this::getFacing, this)
+                .addFuelSlot()
+                .build();
     }
 
     @Override

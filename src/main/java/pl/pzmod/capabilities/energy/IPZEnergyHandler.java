@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.capabilities.Action;
 import pl.pzmod.capabilities.AutomationType;
+import pl.pzmod.attachments.containers.energy.IEnergyContainer;
 
 import java.util.List;
 import java.util.Optional;

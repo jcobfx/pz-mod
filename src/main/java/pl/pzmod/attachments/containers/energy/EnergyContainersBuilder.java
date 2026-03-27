@@ -2,7 +2,7 @@ package pl.pzmod.attachments.containers.energy;
 
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.attachments.containers.creator.ContainerCreator;
-import pl.pzmod.attachments.containers.creator.IBasicContainerCreator;
+import pl.pzmod.attachments.containers.creator.IBaseContainerCreator;
 import pl.pzmod.capabilities.AutomationType;
 import pl.pzmod.attachments.containers.ConstantPredicates;
 
@@ -16,36 +16,36 @@ public class EnergyContainersBuilder {
         return new EnergyContainersBuilder();
     }
 
-    private final List<IBasicContainerCreator<? extends ComponentBackedEnergyContainer>> containerCreators;
+    private final List<IBaseContainerCreator<Integer, AttachedEnergy, ? extends AttachedEnergyContainer>> containerCreators;
 
     private EnergyContainersBuilder() {
         this.containerCreators = new ArrayList<>();
     }
 
-    public ContainerCreator<ComponentBackedEnergyContainer, AttachedEnergy> build() {
+    public ContainerCreator<Integer, AttachedEnergy, AttachedEnergyContainer> build() {
         return new BaseEnergyContainerCreator(containerCreators);
     }
 
-    public EnergyContainersBuilder addBasic(IntSupplier rate, IntSupplier capacity) {
-        return addStorage((type, attachedTo, containerIndex) ->
-                new ComponentBackedEnergyContainer(attachedTo, containerIndex, AutomationType::manual, ConstantPredicates.alwaysTrue(), rate, capacity));
+    public EnergyContainersBuilder addBasic(IntSupplier maxEnergy, IntSupplier rate) {
+        return addStorage((containerIndex, getter, setter, creator) ->
+                new AttachedEnergyContainer(containerIndex, getter, setter, creator,
+                        AutomationType::manual, ConstantPredicates.alwaysTrue(), maxEnergy, rate));
     }
 
     public EnergyContainersBuilder addBasic(Predicate<@NotNull AutomationType> canExtract,
                                             Predicate<@NotNull AutomationType> canInsert,
-                                            IntSupplier rate,
-                                            IntSupplier capacity) {
-        return addStorage((type, attachedTo, containerIndex) ->
-                new ComponentBackedEnergyContainer(attachedTo, containerIndex, canExtract, canInsert, rate, capacity));
+                                            IntSupplier maxEnergy, IntSupplier rate) {
+        return addStorage((containerIndex, getter, setter, creator) ->
+                new AttachedEnergyContainer(containerIndex, getter, setter, creator, canExtract, canInsert, maxEnergy, rate));
     }
 
-    public EnergyContainersBuilder addStorage(IBasicContainerCreator<? extends ComponentBackedEnergyContainer> storage) {
+    public EnergyContainersBuilder addStorage(IEnergyContainerCreator<? extends AttachedEnergyContainer> storage) {
         containerCreators.add(storage);
         return this;
     }
 
-    private static class BaseEnergyContainerCreator extends ContainerCreator<ComponentBackedEnergyContainer, AttachedEnergy> {
-        public BaseEnergyContainerCreator(List<IBasicContainerCreator<? extends ComponentBackedEnergyContainer>> creators) {
+    private static class BaseEnergyContainerCreator extends ContainerCreator<Integer, AttachedEnergy, AttachedEnergyContainer> {
+        public BaseEnergyContainerCreator(List<IBaseContainerCreator<Integer, AttachedEnergy, ? extends AttachedEnergyContainer>> creators) {
             super(creators);
         }
 

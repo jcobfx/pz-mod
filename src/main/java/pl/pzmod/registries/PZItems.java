@@ -2,11 +2,9 @@ package pl.pzmod.registries;
 
 import net.neoforged.bus.api.IEventBus;
 import pl.pzmod.PZMod;
-import pl.pzmod.capabilities.Capabilities;
 import pl.pzmod.items.BackpackItem;
 import pl.pzmod.items.BatteryItem;
 import pl.pzmod.items.BigBucketItem;
-import pl.pzmod.items.PZItem;
 import pl.pzmod.registration.ItemDeferredRegister;
 import pl.pzmod.registration.ItemRegistryObject;
 

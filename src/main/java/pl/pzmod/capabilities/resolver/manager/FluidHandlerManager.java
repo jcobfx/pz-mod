@@ -2,7 +2,7 @@ package pl.pzmod.capabilities.resolver.manager;
 
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.fluid.IFluidContainer;
+import pl.pzmod.attachments.containers.fluid.IFluidContainer;
 import pl.pzmod.capabilities.holder.fluid.IFluidHolder;
 import pl.pzmod.capabilities.proxy.FluidHandlerProxy;
 import pl.pzmod.capabilities.fluid.ISidedFluidHandler;

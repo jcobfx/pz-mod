@@ -1,4 +1,4 @@
-package pl.pzmod.capabilities.item;
+package pl.pzmod.attachments.containers.item;
 
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;

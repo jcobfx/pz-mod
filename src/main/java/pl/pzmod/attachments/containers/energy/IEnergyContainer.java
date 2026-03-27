@@ -1,4 +1,4 @@
-package pl.pzmod.capabilities.energy;
+package pl.pzmod.attachments.containers.energy;
 
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.capabilities.Action;
@@ -11,12 +11,14 @@ public interface IEnergyContainer {
 
     void setEnergy(int energy);
 
+    int getRate();
+
+    boolean canInsert(@NotNull AutomationType automationType);
+
+    boolean canExtract(@NotNull AutomationType automationType);
+
     default int clampEnergy(int energy) {
         return Math.clamp(energy, 0, getMaxEnergy());
-    }
-
-    default boolean isEmpty() {
-        return getEnergy() == 0;
     }
 
     /**
@@ -34,11 +36,11 @@ public interface IEnergyContainer {
         if (needed == 0) {
             return energy;
         }
-        int toAdd = Math.min(energy, needed);
+        int toInsert = Math.min(energy, needed);
         if (action.execute()) {
-            setEnergy(getEnergy() + toAdd);
+            setEnergy(getEnergy() + toInsert);
         }
-        return energy - toAdd;
+        return energy - toInsert;
     }
 
     /**
@@ -49,13 +51,13 @@ public interface IEnergyContainer {
      * @return amount of extracted energy
      */
     default int extract(int energy, @NotNull Action action, @NotNull AutomationType automationType) {
-        if (energy <= 0 || isEmpty()) {
+        if (energy <= 0 || getEnergy() == 0) {
             return 0;
         }
-        int ret = Math.min(getEnergy(), energy);
-        if (ret > 0 && action.execute()) {
-            setEnergy(getEnergy() - ret);
+        int toExtract = Math.min(getEnergy(), energy);
+        if (toExtract > 0 && action.execute()) {
+            setEnergy(getEnergy() - toExtract);
         }
-        return ret;
+        return toExtract;
     }
 }

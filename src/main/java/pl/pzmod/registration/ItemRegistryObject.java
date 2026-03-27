@@ -14,7 +14,7 @@ public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I
 
     void attachDefaultContainers(@NotNull IEventBus eventBus) {
         if (get() instanceof IContainerItem containerItem) {
-            containerItem.addDefaultContainers(eventBus);
+            containerItem.attachDefaultContainers(eventBus);
         }
     }
 

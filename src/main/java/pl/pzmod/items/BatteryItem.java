@@ -16,7 +16,9 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.PZMod;
 import pl.pzmod.attachments.containers.energy.EnergyContainersBuilder;
+import pl.pzmod.capabilities.Action;
 import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.capabilities.energy.IEnergyHandler;
 
 public class BatteryItem extends PZItem {
     private static final int CAPACITY = 10000;
@@ -31,7 +33,7 @@ public class BatteryItem extends PZItem {
 
     @Override
     protected @NotNull EnergyContainersBuilder addDefaultEnergyContainers(@NotNull EnergyContainersBuilder builder) {
-        return builder.addBasic(() -> RATE, () -> CAPACITY);
+        return builder.addBasic(() -> CAPACITY, () -> RATE);
     }
 
     @Override
@@ -41,35 +43,40 @@ public class BatteryItem extends PZItem {
 
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
-        Level level = context.getLevel();
+        // TODO: fix
+
         Player player = context.getPlayer();
+        if (player == null || !player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
+        }
+
+        Level level = context.getLevel();
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
         BlockPos pos = context.getClickedPos();
-
-        if (player == null || !player.isShiftKeyDown()) return InteractionResult.PASS;
-        if (level.isClientSide()) return InteractionResult.SUCCESS;
-
         BlockState state = level.getBlockState(pos);
-        if (!state.is(BATTERY_CHARGERS)) return InteractionResult.PASS;
+        if (!state.is(BATTERY_CHARGERS)) {
+            return InteractionResult.PASS;
+        }
 
-        IEnergyStorage batteryCap = Capabilities.ENERGY.getCapability(context.getItemInHand());
-        IEnergyStorage blockCap = Capabilities.ENERGY.getCapability(level, pos, context.getClickedFace());
+        IEnergyStorage blockCap = Capabilities.ENERGY.getCapability(level, pos, state, null, context.getClickedFace());
         if (blockCap == null) {
-            blockCap = Capabilities.ENERGY.getCapability(level, pos, null);
+            blockCap = Capabilities.ENERGY.getCapability(level, pos, state, null, null);
+        }
+        IEnergyHandler batteryCap = (IEnergyHandler) Capabilities.ENERGY.getCapability(context.getItemInHand());
+        if (batteryCap == null || blockCap == null) {
+            return InteractionResult.FAIL;
         }
 
-        if (batteryCap != null && blockCap != null) {
-            int maxToReceive = Math.min(RATE, batteryCap.getMaxEnergyStored() - batteryCap.getEnergyStored());
-
-            int available = blockCap.extractEnergy(maxToReceive, true);
-
-            if (available > 0) {
-                int accepted = batteryCap.receiveEnergy(available, false);
-                blockCap.extractEnergy(accepted, false);
-
-                return InteractionResult.SUCCESS;
-            }
+        int toTransfer = RATE - batteryCap.insertEnergy(0, RATE, Action.SIMULATE);
+        toTransfer = blockCap.extractEnergy(toTransfer, true);
+        if (toTransfer > 0) {
+            batteryCap.insertEnergy(0, toTransfer, Action.EXECUTE);
+            blockCap.extractEnergy(toTransfer, false);
+            return InteractionResult.SUCCESS;
         }
-
         return InteractionResult.FAIL;
     }
 

@@ -3,7 +3,6 @@ package pl.pzmod.items;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import pl.pzmod.attachments.containers.ContainerType;
 import pl.pzmod.attachments.containers.energy.EnergyContainersBuilder;
 import pl.pzmod.attachments.containers.fluid.FluidContainersBuilder;
@@ -39,15 +38,15 @@ public abstract class PZItem extends Item implements IContainerItem {
     }
 
     @Override
-    public void addDefaultContainers(@Nullable IEventBus bus) {
+    public void attachDefaultContainers(@NotNull IEventBus bus) {
         if (hasEnergyContainers()) {
-            ContainerType.ENERGY.addDefaultCreators(bus, this, () -> addDefaultEnergyContainers(EnergyContainersBuilder.builder()).build());
+            ContainerType.ENERGY.addDefaultCreators(bus, this, addDefaultEnergyContainers(EnergyContainersBuilder.builder()).build());
         }
         if (hasFluidContainers()) {
-            ContainerType.FLUIDS.addDefaultCreators(bus, this, () -> addDefaultFluidContainers(FluidContainersBuilder.builder()).build());
+            ContainerType.FLUID.addDefaultCreators(bus, this, addDefaultFluidContainers(FluidContainersBuilder.builder()).build());
         }
         if (hasItemContainers()) {
-            ContainerType.ITEMS.addDefaultCreators(bus, this, () -> addDefaultItemContainers(ItemContainersBuilder.builder()).build());
+            ContainerType.ITEM.addDefaultCreators(bus, this, addDefaultItemContainers(ItemContainersBuilder.builder()).build());
         }
     }
 }

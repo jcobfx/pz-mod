@@ -22,7 +22,8 @@ public record AttachedFluids(List<FluidStack> contents) implements IAttachedCont
 
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                SerializerHelper.LENIENT_OPTIONAL_FLUID_STACK_CODEC.listOf().fieldOf(SerializationConstants.FLUID_CONTAINERS)
+                SerializerHelper.LENIENT_OPTIONAL_FLUID_STACK_CODEC.listOf()
+                        .fieldOf(SerializationConstants.FLUID_CONTAINERS)
                         .forGetter(AttachedFluids::contents)
         ).apply(instance, AttachedFluids::new));
 

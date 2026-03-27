@@ -22,7 +22,8 @@ public record AttachedItems(List<ItemStack> contents) implements IAttachedContai
     static {
         CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 SerializerHelper.LENIENT_OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.listOf()
-                        .fieldOf(SerializationConstants.ITEM_CONTAINERS).forGetter(AttachedItems::contents)
+                        .fieldOf(SerializationConstants.ITEM_CONTAINERS)
+                        .forGetter(AttachedItems::contents)
         ).apply(instance, AttachedItems::new));
 
         STREAM_CODEC = ItemStack.OPTIONAL_LIST_STREAM_CODEC

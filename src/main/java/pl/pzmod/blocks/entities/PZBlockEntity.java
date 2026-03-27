@@ -15,12 +15,12 @@ import pl.pzmod.capabilities.holder.item.IItemHolder;
 import pl.pzmod.capabilities.resolver.manager.EnergyHandlerManager;
 import pl.pzmod.capabilities.resolver.manager.FluidHandlerManager;
 import pl.pzmod.capabilities.resolver.manager.ICapabilityHandlerManager;
-import pl.pzmod.capabilities.energy.IEnergyContainer;
+import pl.pzmod.attachments.containers.energy.IEnergyContainer;
 import pl.pzmod.capabilities.resolver.manager.ItemHandlerManager;
 import pl.pzmod.capabilities.energy.IPZEnergyHandler;
-import pl.pzmod.capabilities.fluid.IFluidContainer;
+import pl.pzmod.attachments.containers.fluid.IFluidContainer;
 import pl.pzmod.capabilities.fluid.IPZFluidHandler;
-import pl.pzmod.capabilities.item.IItemContainer;
+import pl.pzmod.attachments.containers.item.IItemContainer;
 import pl.pzmod.capabilities.item.IPZItemHandler;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public abstract class PZBlockEntity extends CapabilityBlockEntity implements IPZ
     private final FluidHandlerManager fluidHandlerManager;
     private final ItemHandlerManager itemHandlerManager;
 
-    protected PZBlockEntity(Holder<? extends Block> blockProvider, BlockPos pos, BlockState blockState) {
+    protected PZBlockEntity(@NotNull Holder<? extends Block> blockProvider, BlockPos pos, BlockState blockState) {
         super(((IEntityBlock<?>) blockProvider.value()).getBlockEntityType().get(), pos, blockState);
         this.block = blockProvider;
 

@@ -86,7 +86,7 @@ public class GeneratorBlock extends PZBlock implements IEntityBlock<GeneratorBlo
         if (!level.isClientSide && state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof GeneratorBlockEntity generatorEntity) {
-                var inventory = generatorEntity.getData(PZAttachments.ITEMS_ATTACHMENT);
+                var inventory = generatorEntity.getData(PZAttachments.ITEMS_ATTACHMENT);;
                 NonNullList<ItemStack> stored = NonNullList.copyOf(inventory.contents());
                 Containers.dropContents(level, pos, stored);
             }
