@@ -12,7 +12,7 @@ import pl.pzmod.PZMod;
 import java.util.function.Supplier;
 
 public class PZCreativeTab {
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB =
+    private static final DeferredRegister<CreativeModeTab> CREATIVE_TAB =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, PZMod.MODID);
 
     public static final Supplier<CreativeModeTab> PZ_ITEMS_TAB = CREATIVE_TAB.register("pz_items_tab",

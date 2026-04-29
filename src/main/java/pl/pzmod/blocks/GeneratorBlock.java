@@ -84,7 +84,7 @@ public class GeneratorBlock extends Block implements IEntityBlock<GeneratorBlock
         if (!level.isClientSide && state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof GeneratorBlockEntity generatorEntity) {
-                Containers.dropContents(level, pos, generatorEntity);
+                Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), generatorEntity.getStackInSlot(0));
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

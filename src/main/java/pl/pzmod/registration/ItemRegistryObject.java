@@ -4,16 +4,16 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import net.neoforged.neoforge.capabilities.ItemCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I> implements ItemLike {
-    private @Nullable List<CapabilityData<?, ?>> capabilities;
+    private @Nullable List<CapabilityData<?>> capabilities;
 
     protected ItemRegistryObject(ResourceKey<Item> key) {
         super(key);
@@ -24,7 +24,7 @@ public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I
         return value();
     }
 
-    void setCapabilities(@Nullable List<CapabilityData<?, ?>> capabilities) {
+    void setCapabilities(@Nullable List<CapabilityData<?>> capabilities) {
         this.capabilities = capabilities;
     }
 
@@ -36,9 +36,9 @@ public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I
         }
     }
 
-    record CapabilityData<T, C>(ItemCapability<T, C> capability, ICapabilityProvider<ItemStack, C, T> provider) {
+    record CapabilityData<T>(ItemCapability<T, Void> capability, Function<ItemStack, T> provider) {
         private void register(RegisterCapabilitiesEvent event, ItemLike item) {
-            event.registerItem(capability, provider, item);
+            event.registerItem(capability, (stack, ctx) -> provider.apply(stack), item);
         }
     }
 }

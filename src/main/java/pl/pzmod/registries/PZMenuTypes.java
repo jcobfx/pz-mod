@@ -11,11 +11,13 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
 import pl.pzmod.menus.GeneratorMenu;
 
+import java.util.function.Supplier;
+
 public class PZMenuTypes {
-    public static final DeferredRegister<MenuType<?>> MENUS =
+    private static final DeferredRegister<MenuType<?>> MENUS =
             DeferredRegister.create(Registries.MENU, PZMod.MODID);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<GeneratorMenu>> GENERATOR =
+    public static final Supplier<MenuType<GeneratorMenu>> GENERATOR =
             registerMenuType("generator_menu", GeneratorMenu::new);
 
     private static <T extends AbstractContainerMenu> DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name,

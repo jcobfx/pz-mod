@@ -58,7 +58,7 @@ public class ItemDeferredRegister extends PZDeferredRegister<Item> {
     public class ItemBuilder<I extends Item> {
         private final String name;
         private final Function<Item.Properties, I> sup;
-        private final List<ItemRegistryObject.CapabilityData<?, ?>> capabilities;
+        private final List<ItemRegistryObject.CapabilityData<?>> capabilities;
 
         private ItemBuilder(String name, Function<Item.Properties, I> sup) {
             this.name = name;
@@ -66,7 +66,7 @@ public class ItemDeferredRegister extends PZDeferredRegister<Item> {
             this.capabilities = new ArrayList<>();
         }
 
-        public <T, C> ItemBuilder<I> with(ItemCapability<T, C> capability, ICapabilityProvider<ItemStack, C, T> provider) {
+        public <T> ItemBuilder<I> with(ItemCapability<T, Void> capability, Function<ItemStack, T> provider) {
             capabilities.add(new ItemRegistryObject.CapabilityData<>(capability, provider));
             return this;
         }

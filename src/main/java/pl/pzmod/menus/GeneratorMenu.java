@@ -6,9 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
 import pl.pzmod.registries.PZBlocks;
@@ -22,20 +20,20 @@ public class GeneratorMenu extends AbstractContainerMenu {
     public GeneratorMenu(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(containerId,
                 playerInventory,
-                playerInventory.player.level().getBlockEntity(extraData.readBlockPos()));
+                (GeneratorBlockEntity) playerInventory.player.level().getBlockEntity(extraData.readBlockPos()));
     }
 
     public GeneratorMenu(int containerId,
                          Inventory playerInventory,
-                         BlockEntity blockEntity) {
+                         GeneratorBlockEntity blockEntity) {
         super(PZMenuTypes.GENERATOR.get(), containerId);
         checkContainerSize(playerInventory, 1);
         this.level = playerInventory.player.level();
-        this.blockEntity = (GeneratorBlockEntity) blockEntity;
-        this.data = this.blockEntity.getData();
+        this.blockEntity = blockEntity;
+        this.data = blockEntity.getData();
         checkContainerDataCount(data, 2);
 
-        this.addSlot(new SlotItemHandler(new InvWrapper(this.blockEntity), 0, 26, 30)); // index 0 - fuel slot
+        this.addSlot(new SlotItemHandler(blockEntity, 0, 26, 30)); // index 0 - fuel slot
         addPlayerInventory(playerInventory); // index 1 - 27
         addPlayerHotbar(playerInventory); // index 28 - 36
         addDataSlots(data);
