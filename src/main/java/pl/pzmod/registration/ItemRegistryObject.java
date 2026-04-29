@@ -2,20 +2,21 @@ package pl.pzmod.registration;
 
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.NotNull;
-import pl.pzmod.items.IContainerItem;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I> implements ItemLike {
+    private @Nullable List<CapabilityData<?, ?>> capabilities;
+
     protected ItemRegistryObject(ResourceKey<Item> key) {
         super(key);
-    }
-
-    void attachDefaultContainers(@NotNull IEventBus eventBus) {
-        if (get() instanceof IContainerItem containerItem) {
-            containerItem.attachDefaultContainers(eventBus);
-        }
     }
 
     @Override
@@ -23,13 +24,21 @@ public class ItemRegistryObject<I extends Item> extends PZDeferredHolder<Item, I
         return value();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
+    void setCapabilities(@Nullable List<CapabilityData<?, ?>> capabilities) {
+        this.capabilities = capabilities;
     }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    void registerCapabilities(RegisterCapabilitiesEvent event) {
+        if (capabilities != null) {
+            for (var cap : capabilities) {
+                cap.register(event, value());
+            }
+        }
+    }
+
+    record CapabilityData<T, C>(ItemCapability<T, C> capability, ICapabilityProvider<ItemStack, C, T> provider) {
+        private void register(RegisterCapabilitiesEvent event, ItemLike item) {
+            event.registerItem(capability, provider, item);
+        }
     }
 }

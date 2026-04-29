@@ -9,11 +9,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import pl.pzmod.registration.BlockEntityTypeRegistryObject;
+import pl.pzmod.registration.BlockEntityRegistryObject;
 
 public interface IEntityBlock<E extends BlockEntity> extends EntityBlock {
     @NotNull
-    BlockEntityTypeRegistryObject<? extends E> getBlockEntityType();
+    BlockEntityRegistryObject<? extends E> getBlockEntityType();
 
     @Override
     default @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {

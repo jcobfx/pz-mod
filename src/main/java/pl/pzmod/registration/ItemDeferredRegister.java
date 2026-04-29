@@ -4,20 +4,25 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.EventPriority;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.jetbrains.annotations.NotNull;
-import pl.pzmod.attachments.containers.ContainerType;
 
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ItemDeferredRegister extends PZDeferredRegister<Item> {
     public ItemDeferredRegister(String modid) {
         super(Registries.ITEM, modid, ItemRegistryObject::new);
+    }
+
+    public <I extends Item> ItemBuilder<I> builder(String name, Function<Item.Properties, I> sup) {
+        return new ItemBuilder<>(name, sup);
     }
 
     public <I extends Item> ItemRegistryObject<I> registerItem(String name, Function<Item.Properties, I> sup) {
@@ -39,28 +44,37 @@ public class ItemDeferredRegister extends PZDeferredRegister<Item> {
     @Override
     public void register(@NotNull IEventBus bus) {
         super.register(bus);
-        bus.addListener(EventPriority.LOWEST, RegisterEvent.class, event -> {
-            if (event.getRegistryKey().equals(Registries.ITEM)) {
-                forEntries(registryObject -> registryObject.attachDefaultContainers(bus));
-            }
-        });
-        bus.addListener(EventPriority.LOWEST, ModifyDefaultComponentsEvent.class, event ->
-                forEntries(registryObject -> {
-                    if (ContainerType.anySupports(registryObject)) {
-                        event.modify(registryObject, builder -> {
-                            for (ContainerType<?, ?, ?> type : ContainerType.TYPES) {
-                                type.addDefault(registryObject, builder);
-                            }
-                        });
-                    }
-                }));
+        bus.addListener(this::registerCapabilities);
     }
 
-    private void forEntries(Consumer<ItemRegistryObject<?>> consumer) {
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
         for (Holder<Item> entry : getEntries()) {
-            if (entry instanceof ItemRegistryObject<?> registryObject) {
-                consumer.accept(registryObject);
+            if (entry instanceof ItemRegistryObject<?> item) {
+                item.registerCapabilities(event);
             }
+        }
+    }
+
+    public class ItemBuilder<I extends Item> {
+        private final String name;
+        private final Function<Item.Properties, I> sup;
+        private final List<ItemRegistryObject.CapabilityData<?, ?>> capabilities;
+
+        private ItemBuilder(String name, Function<Item.Properties, I> sup) {
+            this.name = name;
+            this.sup = sup;
+            this.capabilities = new ArrayList<>();
+        }
+
+        public <T, C> ItemBuilder<I> with(ItemCapability<T, C> capability, ICapabilityProvider<ItemStack, C, T> provider) {
+            capabilities.add(new ItemRegistryObject.CapabilityData<>(capability, provider));
+            return this;
+        }
+
+        public ItemRegistryObject<I> build() {
+            var holder = registerItem(name, sup);
+            holder.setCapabilities(capabilities.isEmpty() ? null : capabilities);
+            return holder;
         }
     }
 }

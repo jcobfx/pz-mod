@@ -28,7 +28,6 @@ public class PZMod {
     private void registerRegistries(IEventBus eventBus) {
         PZCreativeTab.register(eventBus);
         PZDataComponents.register(eventBus);
-        PZAttachments.register(eventBus);
         PZBlockEntities.register(eventBus);
         PZMenuTypes.register(eventBus);
         PZBlocks.register(eventBus);

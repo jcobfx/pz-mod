@@ -7,22 +7,20 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import pl.pzmod.PZMod;
-import pl.pzmod.attachments.containers.energy.EnergyContainersBuilder;
-import pl.pzmod.capabilities.Action;
-import pl.pzmod.capabilities.Capabilities;
-import pl.pzmod.capabilities.energy.IEnergyHandler;
 
-public class BatteryItem extends PZItem {
-    private static final int CAPACITY = 10000;
-    private static final int RATE = 1000;
+public class BatteryItem extends Item {
+    public static final int CAPACITY = 10000;
+    public static final int RATE = 1000;
 
     private static final TagKey<Block> BATTERY_CHARGERS =
             TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(PZMod.MODID, "battery_chargers"));
@@ -32,19 +30,7 @@ public class BatteryItem extends PZItem {
     }
 
     @Override
-    protected @NotNull EnergyContainersBuilder addDefaultEnergyContainers(@NotNull EnergyContainersBuilder builder) {
-        return builder.addBasic(() -> CAPACITY, () -> RATE);
-    }
-
-    @Override
-    public boolean hasEnergyContainers() {
-        return true;
-    }
-
-    @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
-        // TODO: fix
-
         Player player = context.getPlayer();
         if (player == null || !player.isShiftKeyDown()) {
             return InteractionResult.PASS;
@@ -61,19 +47,19 @@ public class BatteryItem extends PZItem {
             return InteractionResult.PASS;
         }
 
-        IEnergyStorage blockCap = Capabilities.ENERGY.getCapability(level, pos, state, null, context.getClickedFace());
+        IEnergyStorage blockCap = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, state, null, context.getClickedFace());
         if (blockCap == null) {
-            blockCap = Capabilities.ENERGY.getCapability(level, pos, state, null, null);
+            blockCap = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, state, null, null);
         }
-        IEnergyHandler batteryCap = (IEnergyHandler) Capabilities.ENERGY.getCapability(context.getItemInHand());
+        IEnergyStorage batteryCap = context.getItemInHand().getCapability(Capabilities.EnergyStorage.ITEM);
         if (batteryCap == null || blockCap == null) {
             return InteractionResult.FAIL;
         }
 
-        int toTransfer = RATE - batteryCap.insertEnergy(0, RATE, Action.SIMULATE);
+        int toTransfer = batteryCap.receiveEnergy(RATE, true);
         toTransfer = blockCap.extractEnergy(toTransfer, true);
         if (toTransfer > 0) {
-            batteryCap.insertEnergy(0, toTransfer, Action.EXECUTE);
+            batteryCap.receiveEnergy(toTransfer, false);
             blockCap.extractEnergy(toTransfer, false);
             return InteractionResult.SUCCESS;
         }
@@ -97,7 +83,7 @@ public class BatteryItem extends PZItem {
     }
 
     private int getEnergy(ItemStack stack) {
-        IEnergyStorage energyStorage = Capabilities.ENERGY.getCapability(stack);
-        return energyStorage != null ? energyStorage.getEnergyStored() : 0;
+        IEnergyStorage energyCap = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        return energyCap != null ? energyCap.getEnergyStored() : 0;
     }
 }

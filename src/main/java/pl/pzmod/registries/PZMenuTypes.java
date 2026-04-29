@@ -9,7 +9,7 @@ import net.neoforged.neoforge.network.IContainerFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import pl.pzmod.PZMod;
-import pl.pzmod.menus.generator.GeneratorMenu;
+import pl.pzmod.menus.GeneratorMenu;
 
 public class PZMenuTypes {
     public static final DeferredRegister<MenuType<?>> MENUS =

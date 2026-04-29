@@ -3,7 +3,6 @@ package pl.pzmod.blocks;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -21,11 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import pl.pzmod.blocks.entities.GeneratorBlockEntity;
 import pl.pzmod.items.BatteryItem;
-import pl.pzmod.registration.BlockEntityTypeRegistryObject;
-import pl.pzmod.registries.PZAttachments;
+import pl.pzmod.registration.BlockEntityRegistryObject;
 import pl.pzmod.registries.PZBlockEntities;
 
-public class GeneratorBlock extends PZBlock implements IEntityBlock<GeneratorBlockEntity> {
+public class GeneratorBlock extends Block implements IEntityBlock<GeneratorBlockEntity> {
     private static final MapCodec<GeneratorBlock> CODEC = simpleCodec(GeneratorBlock::new);
 
     public GeneratorBlock(Properties properties) {
@@ -49,7 +47,7 @@ public class GeneratorBlock extends PZBlock implements IEntityBlock<GeneratorBlo
     }
 
     @Override
-    public @NotNull BlockEntityTypeRegistryObject<? extends GeneratorBlockEntity> getBlockEntityType() {
+    public @NotNull BlockEntityRegistryObject<GeneratorBlockEntity> getBlockEntityType() {
         return PZBlockEntities.GENERATOR;
     }
 
@@ -86,9 +84,7 @@ public class GeneratorBlock extends PZBlock implements IEntityBlock<GeneratorBlo
         if (!level.isClientSide && state.getBlock() != newState.getBlock()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof GeneratorBlockEntity generatorEntity) {
-                var inventory = generatorEntity.getData(PZAttachments.ITEMS_ATTACHMENT);;
-                NonNullList<ItemStack> stored = NonNullList.copyOf(inventory.contents());
-                Containers.dropContents(level, pos, stored);
+                Containers.dropContents(level, pos, generatorEntity);
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

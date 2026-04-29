@@ -18,9 +18,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockEntityTypeDeferredRegister extends PZDeferredRegister<BlockEntityType<?>> {
-    public BlockEntityTypeDeferredRegister(String modid) {
-        super(Registries.BLOCK_ENTITY_TYPE, modid, BlockEntityTypeRegistryObject::new);
+public class BlockEntityDeferredRegister extends PZDeferredRegister<BlockEntityType<?>> {
+    public BlockEntityDeferredRegister(String modid) {
+        super(Registries.BLOCK_ENTITY_TYPE, modid, BlockEntityRegistryObject::new);
     }
 
     public <E extends BlockEntity> BlockEntityTypeBuilder<E> builder(DeferredHolder<Block, ?> block,
@@ -36,7 +36,7 @@ public class BlockEntityTypeDeferredRegister extends PZDeferredRegister<BlockEnt
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         for (Holder<BlockEntityType<?>> entry : getEntries()) {
-            if (entry instanceof BlockEntityTypeRegistryObject<?> blockEntityType) {
+            if (entry instanceof BlockEntityRegistryObject<?> blockEntityType) {
                 blockEntityType.registerCapabilities(event);
             }
         }
@@ -45,7 +45,7 @@ public class BlockEntityTypeDeferredRegister extends PZDeferredRegister<BlockEnt
     public class BlockEntityTypeBuilder<E extends BlockEntity> {
         private final DeferredHolder<Block, ?> block;
         private final BlockEntityType.BlockEntitySupplier<? extends E> factory;
-        private final List<BlockEntityTypeRegistryObject.CapabilityData<E, ?, ?>> capabilities;
+        private final List<BlockEntityRegistryObject.CapabilityData<E, ?, ?>> capabilities;
 
         private @Nullable BlockEntityTicker<E> clientTicker;
         private @Nullable BlockEntityTicker<E> serverTicker;
@@ -57,7 +57,7 @@ public class BlockEntityTypeDeferredRegister extends PZDeferredRegister<BlockEnt
         }
 
         public <T, C> BlockEntityTypeBuilder<E> with(BlockCapability<T, C> capability, ICapabilityProvider<? super E, C, T> provider) {
-            capabilities.add(new BlockEntityTypeRegistryObject.CapabilityData<>(capability, provider));
+            capabilities.add(new BlockEntityRegistryObject.CapabilityData<>(capability, provider));
             return this;
         }
 
@@ -78,8 +78,8 @@ public class BlockEntityTypeDeferredRegister extends PZDeferredRegister<BlockEnt
                     .serverTicker(ticker);
         }
 
-        public BlockEntityTypeRegistryObject<E> build() {
-            var holder = (BlockEntityTypeRegistryObject<E>) register(block.getId().getPath(),
+        public BlockEntityRegistryObject<E> build() {
+            var holder = (BlockEntityRegistryObject<E>) register(block.getId().getPath(),
                     () -> BlockEntityType.Builder.<E>of(factory, block.value()).build(null));
             holder.setCapabilities(capabilities.isEmpty() ? null : capabilities);
             holder.setTickers(clientTicker, serverTicker);

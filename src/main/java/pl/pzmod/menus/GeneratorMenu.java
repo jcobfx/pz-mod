@@ -1,61 +1,52 @@
-package pl.pzmod.menus.generator;
+package pl.pzmod.menus;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
-import pl.pzmod.capabilities.Capabilities;
+import pl.pzmod.blocks.entities.GeneratorBlockEntity;
 import pl.pzmod.registries.PZBlocks;
 import pl.pzmod.registries.PZMenuTypes;
 
-import java.util.Objects;
-
 public class GeneratorMenu extends AbstractContainerMenu {
-    private final IEnergyStorage energyStorage;
+    private final Level level;
+    private final GeneratorBlockEntity blockEntity;
     private final ContainerData data;
-    private final ContainerLevelAccess access;
 
     public GeneratorMenu(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(containerId,
                 playerInventory,
-                new ItemStackHandler(1),
-                Objects.requireNonNull(Capabilities.ENERGY
-                        .getCapability(playerInventory.player.level(), extraData.readBlockPos(), null)),
-                new SimpleContainerData(2),
-                ContainerLevelAccess.NULL);
+                playerInventory.player.level().getBlockEntity(extraData.readBlockPos()));
     }
 
     public GeneratorMenu(int containerId,
                          Inventory playerInventory,
-                         IItemHandler inventory,
-                         IEnergyStorage energyStorage,
-                         ContainerData data,
-                         ContainerLevelAccess access) {
+                         BlockEntity blockEntity) {
         super(PZMenuTypes.GENERATOR.get(), containerId);
         checkContainerSize(playerInventory, 1);
+        this.level = playerInventory.player.level();
+        this.blockEntity = (GeneratorBlockEntity) blockEntity;
+        this.data = this.blockEntity.getData();
         checkContainerDataCount(data, 2);
-        this.energyStorage = energyStorage;
-        this.data = data;
-        this.access = access;
 
-        this.addSlot(new SlotItemHandler(inventory, 0, 26, 30)); // index 0 - fuel slot
+        this.addSlot(new SlotItemHandler(new InvWrapper(this.blockEntity), 0, 26, 30)); // index 0 - fuel slot
         addPlayerInventory(playerInventory); // index 1 - 27
         addPlayerHotbar(playerInventory); // index 28 - 36
         addDataSlots(data);
     }
 
     int getEnergyStored() {
-        return energyStorage.getEnergyStored();
+        return blockEntity.getEnergyStored();
     }
 
     int getMaxEnergyStored() {
-        return energyStorage.getMaxEnergyStored();
+        return blockEntity.getMaxEnergyStored();
     }
 
     int getBurnTime() {
@@ -68,7 +59,7 @@ public class GeneratorMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player player) {
-        return stillValid(access, player, PZBlocks.GENERATOR.get());
+        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, PZBlocks.GENERATOR.get());
     }
 
     @Override

@@ -11,12 +11,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BlockEntityTypeRegistryObject<E extends BlockEntity> extends PZDeferredHolder<BlockEntityType<?>, BlockEntityType<E>> {
+public class BlockEntityRegistryObject<E extends BlockEntity> extends PZDeferredHolder<BlockEntityType<?>, BlockEntityType<E>> {
     private @Nullable List<CapabilityData<E, ?, ?>> capabilities;
     private @Nullable BlockEntityTicker<E> clientTicker;
     private @Nullable BlockEntityTicker<E> serverTicker;
 
-    protected BlockEntityTypeRegistryObject(ResourceKey<BlockEntityType<?>> key) {
+    protected BlockEntityRegistryObject(ResourceKey<BlockEntityType<?>> key) {
         super(key);
     }
 
@@ -39,16 +39,6 @@ public class BlockEntityTypeRegistryObject<E extends BlockEntity> extends PZDefe
                 cap.register(event, value());
             }
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 
     record CapabilityData<E extends BlockEntity, T, C>(BlockCapability<T, C> capability,
