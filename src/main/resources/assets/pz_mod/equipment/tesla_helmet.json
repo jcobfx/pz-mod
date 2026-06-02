@@ -1,0 +1,9 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "pz_mod:tesla_helmet"
+      }
+    ]
+  }
+}

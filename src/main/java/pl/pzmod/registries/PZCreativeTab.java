@@ -21,6 +21,7 @@ public class PZCreativeTab {
                     .displayItems((itemDisplayParameter, output) ->{
                         output.accept(PZItems.BATTERY.get());
                         output.accept(PZItems.BACKPACK.get());
+                        output.accept(PZItems.TESLA_HELMET.get());
                         output.accept(PZItems.BIG_BUCKET.get());
                     }).build());
 

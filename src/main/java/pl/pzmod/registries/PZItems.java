@@ -10,6 +10,7 @@ import pl.pzmod.PZMod;
 import pl.pzmod.items.BackpackItem;
 import pl.pzmod.items.BatteryItem;
 import pl.pzmod.items.BigBucketItem;
+import pl.pzmod.items.armor.TeslaHelmetItem;
 import pl.pzmod.registration.ItemDeferredRegister;
 import pl.pzmod.registration.ItemRegistryObject;
 
@@ -26,6 +27,9 @@ public class PZItems {
 
     public static final ItemRegistryObject<BigBucketItem> BIG_BUCKET = ITEMS.builder("big_bucket", BigBucketItem::new)
             .with(Capabilities.FluidHandler.ITEM, stack -> new FluidHandlerItemStack(PZDataComponents.FLUID_CONTAINER, stack, BigBucketItem.CAPACITY))
+            .build();
+
+    public static final ItemRegistryObject<TeslaHelmetItem> TESLA_HELMET = ITEMS.builder("tesla_helmet", TeslaHelmetItem::new)
             .build();
 
     public static void register(IEventBus bus) {
