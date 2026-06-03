@@ -36,22 +36,19 @@ public class PZModClient {
         PZMod.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
 
-    @EventBusSubscriber(modid = PZMod.MODID, value = Dist.CLIENT)
-    public static class ClientModEvents{
-        @SubscribeEvent
-        public static void registerClientScreens(RegisterMenuScreensEvent event){
-            event.register(PZMenuTypes.GENERATOR.get(), GeneratorScreen::new);
-        }
-
-        private ClientModEvents() {
-        }
+    @SubscribeEvent
+    public static void registerClientScreens(RegisterMenuScreensEvent event){
+        event.register(PZMenuTypes.GENERATOR.get(), GeneratorScreen::new);
     }
 
     @SubscribeEvent
     public static void registerItemExtensions(RegisterClientExtensionsEvent event) {
         event.registerItem(new IClientItemExtensions() {
             @Override
-            public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+            public @NotNull HumanoidModel<?> getHumanoidArmorModel(@NotNull LivingEntity livingEntity,
+                                                                   @NotNull ItemStack itemStack,
+                                                                   @NotNull EquipmentSlot equipmentSlot,
+                                                                   @NotNull HumanoidModel<?> original) {
                 TeslaHelmetModel<?> model = new TeslaHelmetModel<>(
                         Minecraft.getInstance().getEntityModels().bakeLayer(ModModelLayers.TESLA_HELMET)
                 );

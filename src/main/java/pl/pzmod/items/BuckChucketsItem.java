@@ -10,9 +10,13 @@ import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -32,33 +36,65 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BigBucketItem extends Item {
+public class BuckChucketsItem extends Item {
     public static final int CAPACITY = 2000;
 
-    public BigBucketItem(Properties properties) {
-        super(properties);
+    private static ItemAttributeModifiers createAttributes() {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID,
+                        5f, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, new AttributeModifier(Item.BASE_ATTACK_SPEED_ID,
+                        -3.0f, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .build();
+    }
+
+    public BuckChucketsItem(Properties properties) {
+        super(properties.stacksTo(1).attributes(createAttributes()));
+    }
+
+    @Override
+    public boolean isBarVisible(@NotNull ItemStack stack) {
+        IFluidHandler fluidCap = stack.getCapability(Capabilities.FluidHandler.ITEM);
+        if (fluidCap == null) {
+            return false;
+        }
+        return !fluidCap.getFluidInTank(0).isEmpty();
+    }
+
+    @Override
+    public int getBarWidth(@NotNull ItemStack stack) {
+        IFluidHandler fluidCap = stack.getCapability(Capabilities.FluidHandler.ITEM);
+        if (fluidCap == null) {
+            return 0;
+        }
+        return Math.round(fluidCap.getFluidInTank(0).getAmount() * 13.0F / CAPACITY);
+    }
+
+    @Override
+    public int getBarColor(@NotNull ItemStack stack) {
+        return Mth.hsvToRgb(1.0F / 3.0F, 1.0F, 1.0F);
     }
 
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
-        ItemStack bigBucket = player.getItemInHand(usedHand);
-        IFluidHandler fluidCap = bigBucket.getCapability(Capabilities.FluidHandler.ITEM);
+        ItemStack buckChucketsItem = player.getItemInHand(usedHand);
+        IFluidHandler fluidCap = buckChucketsItem.getCapability(Capabilities.FluidHandler.ITEM);
         if (fluidCap == null) {
-            return InteractionResultHolder.pass(bigBucket);
+            return InteractionResultHolder.pass(buckChucketsItem);
         }
 
         FluidStack stored = fluidCap.getFluidInTank(0);
         BlockHitResult blockHitResult = getPlayerPOVHitResult(level, player,
                 stored.getAmount() < CAPACITY ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
         if (blockHitResult.getType() != HitResult.Type.BLOCK) {
-            return InteractionResultHolder.pass(bigBucket);
+            return InteractionResultHolder.pass(buckChucketsItem);
         }
 
         BlockPos blockpos = blockHitResult.getBlockPos();
         Direction direction = blockHitResult.getDirection();
         BlockPos relativeBlockpos = blockpos.relative(direction);
-        if (!level.mayInteract(player, blockpos) || !player.mayUseItemAt(relativeBlockpos, direction, bigBucket)) {
-            return InteractionResultHolder.fail(bigBucket);
+        if (!level.mayInteract(player, blockpos) || !player.mayUseItemAt(relativeBlockpos, direction, buckChucketsItem)) {
+            return InteractionResultHolder.fail(buckChucketsItem);
         }
 
         FluidState fluidState = level.getFluidState(blockpos);
@@ -69,7 +105,7 @@ public class BigBucketItem extends Item {
                 !bucketpickup.pickupBlock(player, level, blockpos, blockstate).isEmpty()) {
             bucketpickup.getPickupSound(blockstate).ifPresent(event -> player.playSound(event, 1.0F, 1.0F));
             fluidCap.fill(toFill, IFluidHandler.FluidAction.EXECUTE);
-            return InteractionResultHolder.sidedSuccess(bigBucket, level.isClientSide());
+            return InteractionResultHolder.sidedSuccess(buckChucketsItem, level.isClientSide());
         }
 
         BlockPos targetPos = canBlockContainFluid(player, level, blockpos, blockstate, stored.getFluid()) ?
@@ -77,10 +113,10 @@ public class BigBucketItem extends Item {
         if (!stored.isEmpty() && extractFromTank(player, level, targetPos, blockHitResult, fluidCap)) {
             fluidCap.drain(1000, IFluidHandler.FluidAction.EXECUTE);
             playEmptySound(player, level, blockpos, stored);
-            return InteractionResultHolder.sidedSuccess(bigBucket, level.isClientSide());
+            return InteractionResultHolder.sidedSuccess(buckChucketsItem, level.isClientSide());
         }
 
-        return InteractionResultHolder.fail(bigBucket);
+        return InteractionResultHolder.fail(buckChucketsItem);
     }
 
     private boolean extractFromTank(@Nullable Player player,
@@ -130,29 +166,6 @@ public class BigBucketItem extends Item {
         }
         return level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), 11)
                 || blockstate.getFluidState().isSource();
-    }
-
-    @Override
-    public boolean isBarVisible(@NotNull ItemStack stack) {
-        IFluidHandler fluidCap = stack.getCapability(Capabilities.FluidHandler.ITEM);
-        if (fluidCap == null) {
-            return false;
-        }
-        return fluidCap.getFluidInTank(0).getAmount() < CAPACITY;
-    }
-
-    @Override
-    public int getBarWidth(@NotNull ItemStack stack) {
-        IFluidHandler fluidCap = stack.getCapability(Capabilities.FluidHandler.ITEM);
-        if (fluidCap == null) {
-            return 0;
-        }
-        return Math.round(fluidCap.getFluidInTank(0).getAmount() * 13.0F / CAPACITY);
-    }
-
-    @Override
-    public int getBarColor(@NotNull ItemStack stack) {
-        return Mth.hsvToRgb(1.0F / 3.0F, 1.0F, 1.0F);
     }
 
     private boolean canInsertFluid(IFluidHandler fluidCap, FluidStack stack) {

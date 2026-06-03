@@ -21,6 +21,7 @@ public class PZDataGenEvents {
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
         generator.addProvider(event.includeClient(), new PZItemModelProvider(output, existingFileHelper));
         generator.addProvider(event.includeServer(), new PZLootProvider(output, lookupProvider));
+        generator.addProvider(event.includeServer(), new PZRecipeProvider(output, lookupProvider));
     }
 
     private PZDataGenEvents() {

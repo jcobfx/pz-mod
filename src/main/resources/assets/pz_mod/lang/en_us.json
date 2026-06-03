@@ -2,8 +2,10 @@
   "creativetab.pz_mod.items": "PZMod Items",
   "item.pz_mod.battery": "Battery",
   "item.pz_mod.backpack": "Backpack",
-  "item.pz_mod.big_bucket": "Big Bucket",
+  "item.pz_mod.buck_chuckets": "Buck Chuckets",
   "item.pz_mod.tesla_helmet": "Tesla Helmet",
+  "item.pz_mod.energy_cell": "Energy Cell",
+  "item.pz_mod.coil": "Coil",
 
   "creativetab.pz_mod.blocks": "PZMod Blocks",
   "block.pz_mod.generator": "Generator"

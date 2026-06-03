@@ -14,6 +14,8 @@ public class PZItemModelProvider extends ItemModelProvider {
     @Override
     protected void registerModels() {
 //        basicItem(PZItems.BACKPACK.get());
-        basicItem(PZItems.BIG_BUCKET.get());
+        basicItem(PZItems.BUCK_CHUCKETS.get());
+        basicItem(PZItems.ENERGY_CELL.get());
+        basicItem(PZItems.COIL.get());
     }
 }
