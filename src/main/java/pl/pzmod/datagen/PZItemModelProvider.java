@@ -17,5 +17,6 @@ public class PZItemModelProvider extends ItemModelProvider {
         basicItem(PZItems.BUCK_CHUCKETS.get());
         basicItem(PZItems.ENERGY_CELL.get());
         basicItem(PZItems.COIL.get());
+        basicItem(PZItems.NIGHT_VISION_GOGGLES.get());
     }
 }
