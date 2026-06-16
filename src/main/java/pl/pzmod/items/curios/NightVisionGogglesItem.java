@@ -27,7 +27,7 @@ public class NightVisionGogglesItem extends Item implements ICurioItem {
         var currentEffect = slotContext.entity().getEffect(MobEffects.NIGHT_VISION);
         IEnergyStorage energyCap = stack.getCapability(Capabilities.EnergyStorage.ITEM);
         if (energyCap == null || energyCap.extractEnergy(1, true) <= 0 ||
-                currentEffect == null || currentEffect.getDuration() > 400) {
+                (currentEffect != null && currentEffect.getDuration() > 400)) {
             return;
         }
         energyCap.extractEnergy(1, false);
